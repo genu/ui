@@ -24,7 +24,7 @@ export type Overlay = OverlayOptions<Component> & ManagedOverlayOptionsPrivate<C
 interface OverlayInstance<T extends Component> extends Omit<ManagedOverlayOptionsPrivate<T>, 'component'> {
   id: symbol
   result: Promise<CloseEventArgType<ComponentEmit<T>>>
-  open: (props?: ComponentProps<T>) => Omit<OverlayInstance<T>, 'open' | 'close' | 'patch' | 'modelValue' | 'resolvePromise'>
+  open: (props?: ComponentProps<T>) => Omit<OverlayInstance<T>, 'open' | 'close' | 'patch' | 'modelValue' | 'resolvePromise' | 'isOpen' | 'isMounted'>
   close: (value?: any) => void
   patch: (props: Partial<ComponentProps<T>>) => void
 }
@@ -68,8 +68,6 @@ function _useOverlay() {
 
     return {
       id,
-      isMounted: overlay.isMounted,
-      isOpen: overlay.isOpen,
       result: new Promise<any>((resolve) => {
         overlay.resolvePromise = resolve
       })
