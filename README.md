@@ -18,24 +18,24 @@ Nuxt UI harnesses the combined strengths of [Reka UI](https://reka-ui.com/), [Ta
 
 ## Documentation
 
-Visit https://ui.nuxt.com to explore the documentation.
+Visit https://ui4.nuxt.com to explore the documentation.
 
 ## Installation
 
 ```bash [pnpm]
-pnpm add @nuxt/ui
+pnpm add @nuxt/ui@alpha
 ```
 
 ```bash [yarn]
-yarn add @nuxt/ui
+yarn add @nuxt/ui@alpha
 ```
 
 ```bash [npm]
-npm install @nuxt/ui
+npm install @nuxt/ui@alpha
 ```
 
 ```bash [bun]
-bun add @nuxt/ui
+bun add @nuxt/ui@alpha
 ```
 
 ### Nuxt
@@ -55,7 +55,7 @@ export default defineNuxtConfig({
 @import "@nuxt/ui";
 ```
 
-Learn more in the [installation guide](https://ui.nuxt.com/docs/getting-started/installation/nuxt).
+Learn more in the [installation guide](https://ui4.nuxt.com/docs/getting-started/installation/nuxt).
 
 ### Vue
 
@@ -102,18 +102,18 @@ app.mount('#app')
 @import "@nuxt/ui";
 ```
 
-Learn more in the [installation guide](https://ui.nuxt.com/docs/getting-started/installation/vue).
+Learn more in the [installation guide](https://ui4.nuxt.com/docs/getting-started/installation/vue).
 
 ## Contribution
 
 Thank you for considering contributing to Nuxt UI. Here are a few ways you can get involved:
 
 - Reporting Bugs: If you come across any bugs or issues, please check out the reporting bugs guide to learn how to submit a bug report.
-- Suggestions: Have any thoughts to enhance Nuxt UI? We'd love to hear them! Check out the [contribution guide](https://ui.nuxt.com/docs/getting-started/contribution) to share your suggestions.
+- Suggestions: Have any thoughts to enhance Nuxt UI? We'd love to hear them! Check out the [contribution guide](https://ui4.nuxt.com/docs/getting-started/contribution) to share your suggestions.
 
 ## Local Development
 
-Follow the docs to [set up your local development environment](https://ui.nuxt.com/docs/getting-started/contribution#local-development) and contribute.
+Follow the docs to [set up your local development environment](https://ui4.nuxt.com/docs/getting-started/contribution#local-development) and contribute.
 
 ## Credits
 

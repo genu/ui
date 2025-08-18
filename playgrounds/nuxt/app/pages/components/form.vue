@@ -2,6 +2,9 @@
 import * as z from 'zod'
 
 const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  tos: z.literal(true),
   contract: z.string({ error: 'Contract is required' }).min(4, 'Contract must be at least 4 characters'),
   contact: z.object({
     firstName: z.string({ error: 'First name is required' }).min(4, 'Name must be at least 1 character'),
@@ -19,7 +22,7 @@ const schema = z.object({
 </script>
 
 <template>
-  <div class="flex flex-col gap-8 w-full">
+  <div class="flex flex-col gap-8">
     <div class="flex gap-4">
       <UForm id="My Awesome Form" :schema="schema" class="w-full" #="{values}">
         <UFormField
@@ -50,7 +53,6 @@ const schema = z.object({
             </UFormField>
           </div>
         </UFormGroup>
-
         <UFormGroup
           name="preferences"
           label="Preferences (Size: sm)"
@@ -87,7 +89,6 @@ const schema = z.object({
               <span class="px-2 py-1 text-xs text-blue-800 bg-blue-100 rounded">Optional</span>
             </div>
           </template>
-
           <UFormField
             label="API Key"
             name="apiKey"

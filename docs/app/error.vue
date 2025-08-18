@@ -61,7 +61,7 @@ provide('navigation', mappedNavigation)
     <NuxtLoadingIndicator color="#FFF" />
 
     <div :class="[route.path.startsWith('/docs/') && 'root']">
-      <Banner />
+      <!-- <Banner /> -->
 
       <Header :links="links" />
 
