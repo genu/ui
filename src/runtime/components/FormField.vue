@@ -2,6 +2,7 @@
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/form-field'
 import type { ComponentConfig } from '../types/tv'
+import type { AriaLabelProps } from '@formwerk/core'
 
 type FormField = ComponentConfig<typeof theme, AppConfig, 'formField'>
 
@@ -47,37 +48,40 @@ export interface FormFieldSlots {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, inject, provide, useId } from 'vue'
-import type { Ref } from 'vue'
+import { computed, ref, provide, type Ref } from 'vue'
 import { Primitive, Label } from 'reka-ui'
 import { useAppConfig } from '#imports'
-import { formFieldInjectionKey, inputIdInjectionKey } from '../composables/useFormField'
+import { formFieldInjectionKey } from '../composables/useFormField'
 import { tv } from '../utils/tv'
-import type { FormError, FormFieldInjectedOptions } from '../types/form'
+import type { FormFieldInjectedOptions } from '../types/form'
 
 const props = defineProps<FormFieldProps>()
 const slots = defineSlots<FormFieldSlots>()
 
 const appConfig = useAppConfig() as FormField['AppConfig']
 
-const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.formField || {}) })({
+const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.formField })({
   size: props.size,
   required: props.required
 }))
 
-const formErrors = inject<Ref<FormError[]> | null>('form-errors', null)
+/**
+ * Aria props
+ */
+const labelProps = ref<AriaLabelProps | null>(null)
+const descriptionProps = ref<any>(null)
+const errorMessageProps = ref<any>(null)
 
-const error = computed(() => props.error || formErrors?.value?.find(error => error.name && (error.name === props.name || (props.errorPattern && error.name.match(props.errorPattern))))?.message)
+// Input state
+const errorMessageRef = ref<Ref<string | undefined> | undefined>()
+const isTouchedRef = ref<Ref<boolean> | undefined>()
 
-const id = ref(useId())
-// Copies id's initial value to bind aria-attributes such as aria-describedby.
-// This is required for the RadioGroup component which unsets the id value.
-const ariaId = id.value
-
-provide(inputIdInjectionKey, id)
+const displayError = computed(() =>
+  isTouchedRef.value?.value ? errorMessageRef.value?.value : ''
+)
 
 provide(formFieldInjectionKey, computed(() => ({
-  error: error.value,
+  displayError: displayError.value,
   name: props.name,
   size: props.size,
   eagerValidation: props.eagerValidation,
@@ -86,7 +90,12 @@ provide(formFieldInjectionKey, computed(() => ({
   hint: props.hint,
   description: props.description,
   help: props.help,
-  ariaId
+  label: props.label,
+  setLabelProps: props => labelProps.value = props,
+  setDescriptionProps: props => descriptionProps.value = props,
+  setErrorMessageProps: props => errorMessageProps.value = props,
+  setErrorMessage: message => errorMessageRef.value = message,
+  setIsTouched: touched => isTouchedRef.value = touched
 }) as FormFieldInjectedOptions<FormFieldProps>))
 </script>
 
@@ -94,19 +103,19 @@ provide(formFieldInjectionKey, computed(() => ({
   <Primitive :as="as" :class="ui.root({ class: [props.ui?.root, props.class] })">
     <div :class="ui.wrapper({ class: props.ui?.wrapper })">
       <div v-if="label || !!slots.label" :class="ui.labelWrapper({ class: props.ui?.labelWrapper })">
-        <Label :for="id" :class="ui.label({ class: props.ui?.label })">
+        <Label v-bind="labelProps" :class="ui.label({ class: props.ui?.label })">
           <slot name="label" :label="label">
             {{ label }}
           </slot>
         </Label>
-        <span v-if="hint || !!slots.hint" :id="`${ariaId}-hint`" :class="ui.hint({ class: props.ui?.hint })">
+        <span v-if="hint || !!slots.hint" :id="`${labelProps?.id}-hint`" :class="ui.hint({ class: props.ui?.hint })">
           <slot name="hint" :hint="hint">
             {{ hint }}
           </slot>
         </span>
       </div>
 
-      <p v-if="description || !!slots.description" :id="`${ariaId}-description`" :class="ui.description({ class: props.ui?.description })">
+      <p v-if="description || !!slots.description" v-bind="descriptionProps" :class="ui.description({ class: props.ui?.description })">
         <slot name="description" :description="description">
           {{ description }}
         </slot>
@@ -114,14 +123,14 @@ provide(formFieldInjectionKey, computed(() => ({
     </div>
 
     <div :class="[(label || !!slots.label || description || !!slots.description) && ui.container({ class: props.ui?.container })]">
-      <slot :error="error" />
+      <slot :error="displayError" />
 
-      <div v-if="(typeof error === 'string' && error) || !!slots.error" :id="`${ariaId}-error`" :class="ui.error({ class: props.ui?.error })">
-        <slot name="error" :error="error">
-          {{ error }}
+      <div v-if="(typeof error === 'string' || displayError) || !!slots.error" v-bind="errorMessageProps" :class="ui.error({ class: props.ui?.error })">
+        <slot name="error" :error="displayError">
+          {{ displayError }}
         </slot>
       </div>
-      <div v-else-if="help || !!slots.help" :id="`${ariaId}-help`" :class="ui.help({ class: props.ui?.help })">
+      <div v-else-if="help || !!slots.help" :id="`${labelProps?.id}-help`" :class="ui.help({ class: props.ui?.help })">
         <slot name="help" :help="help">
           {{ help }}
         </slot>

@@ -112,6 +112,7 @@
   },
   "dependencies": {
     "@ai-sdk/vue": "^2.0.9",
+    "@formwerk/core": "^0.11.5",
     "@iconify/vue": "^5.0.0",
     "@internationalized/date": "^3.8.2",
     "@internationalized/number": "^3.6.4",

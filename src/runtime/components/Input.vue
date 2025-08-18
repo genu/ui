@@ -6,6 +6,8 @@ import type { UseComponentIconsProps } from '../composables/useComponentIcons'
 import type { AvatarProps } from '../types'
 import type { AcceptableValue } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
+import type { Numberish, TextInputDOMType } from '@formwerk/core'
+import { useTextField } from '@formwerk/core'
 
 type Input = ComponentConfig<typeof theme, AppConfig, 'input'>
 
@@ -17,7 +19,7 @@ export interface InputProps<T extends AcceptableValue = AcceptableValue> extends
   as?: any
   id?: string
   name?: string
-  type?: InputHTMLAttributes['type']
+  type?: TextInputDOMType
   /** The placeholder text when the input is empty. */
   placeholder?: string
   /**
@@ -37,25 +39,15 @@ export interface InputProps<T extends AcceptableValue = AcceptableValue> extends
   autofocus?: boolean
   autofocusDelay?: number
   disabled?: boolean
+  readonly?: boolean
+  maxLength?: Numberish
+  minLength?: Numberish
   /** Highlight the ring color like a focus state. */
   highlight?: boolean
   modelValue?: T
   defaultValue?: T
-  modelModifiers?: {
-    string?: boolean
-    number?: boolean
-    trim?: boolean
-    lazy?: boolean
-    nullify?: boolean
-  }
   class?: any
   ui?: Input['slots']
-}
-
-export interface InputEmits<T extends AcceptableValue = AcceptableValue> {
-  'update:modelValue': [payload: T]
-  'blur': [event: FocusEvent]
-  'change': [event: Event]
 }
 
 export interface InputSlots {
@@ -66,14 +58,12 @@ export interface InputSlots {
 </script>
 
 <script setup lang="ts" generic="T extends AcceptableValue">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { Primitive } from 'reka-ui'
-import { useVModel } from '@vueuse/core'
 import { useAppConfig } from '#imports'
 import { useFieldGroup } from '../composables/useFieldGroup'
 import { useComponentIcons } from '../composables/useComponentIcons'
 import { useFormField } from '../composables/useFormField'
-import { looseToNumber } from '../utils'
 import { tv } from '../utils/tv'
 import UIcon from './Icon.vue'
 import UAvatar from './Avatar.vue'
@@ -85,16 +75,34 @@ const props = withDefaults(defineProps<InputProps<T>>(), {
   autocomplete: 'off',
   autofocusDelay: 0
 })
-const emits = defineEmits<InputEmits<T>>()
-const slots = defineSlots<InputSlots>()
 
-const modelValue = useVModel<InputProps<T>, 'modelValue', 'update:modelValue'>(props, 'modelValue', emits, { defaultValue: props.defaultValue })
+const slots = defineSlots<InputSlots>()
 
 const appConfig = useAppConfig() as Input['AppConfig']
 
-const { emitFormBlur, emitFormInput, emitFormChange, size: formGroupSize, color, id, name, highlight, disabled, emitFormFocus, ariaAttrs } = useFormField<InputProps<T>>(props, { deferInputValidation: true })
+const { name, size: formGroupSize, label, setLabelProps, setDescriptionProps, setErrorMessageProps, setIsTouched, setErrorMessage, highlight, color } = useFormField<InputProps<T>>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps<T>>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(props)
+
+const { inputEl, inputProps, labelProps, descriptionProps, errorMessageProps, errorMessage, isTouched } = useTextField({
+  name,
+  label: label.value ?? '',
+  type: props.type,
+  autocomplete: props.autocomplete,
+  required: props.required,
+  placeholder: props.placeholder,
+  maxLength: props.maxLength,
+  minLength: props.minLength,
+  disabled: props.disabled,
+  readonly: props.readonly
+})
+
+// Initialize Parent FormField
+setLabelProps(labelProps.value)
+setDescriptionProps(descriptionProps.value)
+setErrorMessageProps(errorMessageProps.value)
+setErrorMessage(errorMessage)
+setIsTouched(isTouched)
 
 const inputSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 
@@ -110,56 +118,9 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.input || {})
   fieldGroup: orientation.value
 }))
 
-const inputRef = ref<HTMLInputElement | null>(null)
-
-// Custom function to handle the v-model properties
-function updateInput(value: string | null) {
-  if (props.modelModifiers?.trim) {
-    value = value?.trim() ?? null
-  }
-
-  if (props.modelModifiers?.number || props.type === 'number') {
-    value = looseToNumber(value)
-  }
-
-  if (props.modelModifiers?.nullify) {
-    value ||= null
-  }
-
-  modelValue.value = value as T
-  emitFormInput()
-}
-
-function onInput(event: Event) {
-  if (!props.modelModifiers?.lazy) {
-    updateInput((event.target as HTMLInputElement).value)
-  }
-}
-
-function onChange(event: Event) {
-  const value = (event.target as HTMLInputElement).value
-
-  if (props.modelModifiers?.lazy) {
-    updateInput(value)
-  }
-
-  // Update trimmed input so that it has same behavior as native input https://github.com/vuejs/core/blob/5ea8a8a4fab4e19a71e123e4d27d051f5e927172/packages/runtime-dom/src/directives/vModel.ts#L63
-  if (props.modelModifiers?.trim) {
-    (event.target as HTMLInputElement).value = value.trim()
-  }
-
-  emitFormChange()
-  emits('change', event)
-}
-
-function onBlur(event: FocusEvent) {
-  emitFormBlur()
-  emits('blur', event)
-}
-
 function autoFocus() {
   if (props.autofocus) {
-    inputRef.value?.focus()
+    inputEl.value?.focus()
   }
 }
 
@@ -170,30 +131,13 @@ onMounted(() => {
 })
 
 defineExpose({
-  inputRef
+  inputEl
 })
 </script>
 
 <template>
   <Primitive :as="as" :class="ui.root({ class: [props.ui?.root, props.class] })">
-    <input
-      :id="id"
-      ref="inputRef"
-      :type="type"
-      :value="modelValue"
-      :name="name"
-      :placeholder="placeholder"
-      :class="ui.base({ class: props.ui?.base })"
-      :disabled="disabled"
-      :required="required"
-      :autocomplete="autocomplete"
-      v-bind="{ ...$attrs, ...ariaAttrs }"
-      @input="onInput"
-      @blur="onBlur"
-      @change="onChange"
-      @focus="emitFormFocus"
-    >
-
+    <input :class="ui.base({ class: props.ui?.base })" v-bind="{ ...$attrs, ...inputProps }">
     <slot />
 
     <span v-if="isLeading || !!avatar || !!slots.leading" :class="ui.leading({ class: props.ui?.leading })">

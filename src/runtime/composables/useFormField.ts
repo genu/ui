@@ -1,103 +1,72 @@
 import { inject, computed, provide } from 'vue'
 import type { InjectionKey, Ref, ComputedRef } from 'vue'
-import { useDebounceFn } from '@vueuse/core'
-import type { UseEventBusReturn } from '@vueuse/core'
 import type { FormFieldProps } from '../types'
-import type { FormEvent, FormInputEvents, FormFieldInjectedOptions, FormInjectedOptions } from '../types/form'
+import type { FormFieldInjectedOptions, FormInjectedOptions } from '../types/form'
 import type { GetObjectField } from '../types/utils'
+import type { AriaLabelProps } from '@formwerk/core'
 
 type Props<T> = {
-  id?: string
   name?: string
   size?: GetObjectField<T, 'size'>
   color?: GetObjectField<T, 'color'>
   highlight?: boolean
   disabled?: boolean
+  label?: string
 }
 
 export const formOptionsInjectionKey: InjectionKey<ComputedRef<FormInjectedOptions>> = Symbol('nuxt-ui.form-options')
-export const formBusInjectionKey: InjectionKey<UseEventBusReturn<FormEvent<any>, string>> = Symbol('nuxt-ui.form-events')
 export const formFieldInjectionKey: InjectionKey<ComputedRef<FormFieldInjectedOptions<FormFieldProps>> | undefined> = Symbol('nuxt-ui.form-field')
-export const inputIdInjectionKey: InjectionKey<Ref<string | undefined>> = Symbol('nuxt-ui.input-id')
-export const formInputsInjectionKey: InjectionKey<Ref<Record<string, { id?: string, pattern?: RegExp }>>> = Symbol('nuxt-ui.form-inputs')
 export const formLoadingInjectionKey: InjectionKey<Readonly<Ref<boolean>>> = Symbol('nuxt-ui.form-loading')
+export const formGroupInjectionKey: InjectionKey<ComputedRef<{ size?: any }>> = Symbol('nuxt-ui.form-group')
 
-export function useFormField<T>(props?: Props<T>, opts?: { bind?: boolean, deferInputValidation?: boolean }) {
+export function useFormField<T>(props?: Props<T>) {
   const formOptions = inject(formOptionsInjectionKey, undefined)
-  const formBus = inject(formBusInjectionKey, undefined)
   const formField = inject(formFieldInjectionKey, undefined)
-  const formInputs = inject(formInputsInjectionKey, undefined)
-  const inputId = inject(inputIdInjectionKey, undefined)
+  const formGroup = inject(formGroupInjectionKey, undefined)
 
-  // Blocks the FormField injection to avoid duplicating events when nesting input components.
   provide(formFieldInjectionKey, undefined)
 
-  if (formField && inputId) {
-    if (opts?.bind === false) {
-      // Removes for="..." attribute on label for RadioGroup and alike.
-      inputId.value = undefined
-    } else if (props?.id) {
-      // Updates for="..." attribute on label if props.id is provided.
-      inputId.value = props?.id
-    }
-
-    if (formInputs && formField.value.name && inputId.value) {
-      formInputs.value[formField.value.name] = { id: inputId.value, pattern: formField.value.errorPattern }
+  const setLabelProps = (props: AriaLabelProps) => {
+    if (formField?.value?.setLabelProps) {
+      formField.value.setLabelProps(props)
     }
   }
 
-  function emitFormEvent(type: FormInputEvents, name?: string, eager?: boolean) {
-    if (formBus && formField && name) {
-      formBus.emit({ type, name, eager })
+  const setDescriptionProps = (props: any) => {
+    if (formField?.value?.setDescriptionProps) {
+      formField.value.setDescriptionProps(props)
     }
   }
 
-  function emitFormBlur() {
-    emitFormEvent('blur', formField?.value.name)
+  const setErrorMessageProps = (props: any) => {
+    if (formField?.value?.setErrorMessageProps) {
+      formField.value.setErrorMessageProps(props)
+    }
   }
 
-  function emitFormFocus() {
-    emitFormEvent('focus', formField?.value.name)
+  const setErrorMessage = (errorMessage: Ref<string | undefined>) => {
+    if (formField?.value?.setErrorMessage) {
+      formField.value.setErrorMessage(errorMessage)
+    }
   }
 
-  function emitFormChange() {
-    emitFormEvent('change', formField?.value.name)
+  const setIsTouched = (isTouched: Ref<boolean>) => {
+    if (formField?.value?.setIsTouched) {
+      formField.value.setIsTouched(isTouched)
+    }
   }
-
-  const emitFormInput = useDebounceFn(
-    () => {
-      emitFormEvent('input', formField?.value.name, !opts?.deferInputValidation || formField?.value.eagerValidation)
-    },
-    formField?.value.validateOnInputDelay ?? formOptions?.value.validateOnInputDelay ?? 0
-  )
 
   return {
-    id: computed(() => props?.id ?? inputId?.value),
-    name: computed(() => props?.name ?? formField?.value.name),
-    size: computed(() => props?.size ?? formField?.value.size),
-    color: computed(() => formField?.value.error ? 'error' : props?.color),
-    highlight: computed(() => formField?.value.error ? true : props?.highlight),
-    disabled: computed(() => formOptions?.value.disabled || props?.disabled),
-    emitFormBlur,
-    emitFormInput,
-    emitFormChange,
-    emitFormFocus,
-    ariaAttrs: computed(() => {
-      if (!formField?.value) return
-
-      const descriptiveAttrs = ['error' as const, 'hint' as const, 'description' as const, 'help' as const]
-        .filter(type => formField?.value?.[type])
-        .map(type => `${formField?.value.ariaId}-${type}`) || []
-
-      const attrs: Record<string, any> = {
-        'aria-invalid': !!formField?.value.error
-      }
-
-      if (descriptiveAttrs.length > 0) {
-        attrs['aria-describedby'] = descriptiveAttrs.join(' ')
-      }
-
-      return attrs
-    })
+    name: computed(() => props?.name ?? formField?.value?.name),
+    label: computed(() => props?.label ?? formField?.value?.label),
+    size: computed(() => props?.size ?? formField?.value?.size ?? formGroup?.value?.size),
+    color: computed(() => formField?.value?.displayError ? 'error' : props?.color),
+    highlight: computed(() => formField?.value?.displayError ? true : props?.highlight),
+    disabled: computed(() => formOptions?.value?.disabled || props?.disabled),
+    setLabelProps,
+    setDescriptionProps,
+    setErrorMessageProps,
+    setErrorMessage,
+    setIsTouched
   }
 }
