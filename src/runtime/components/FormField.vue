@@ -60,7 +60,7 @@ const slots = defineSlots<FormFieldSlots>()
 
 const appConfig = useAppConfig() as FormField['AppConfig']
 
-const ui = computed(() => tv({ extend: tv(theme), ...appConfig.ui?.formField })({
+const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.formField) || {} })({
   size: props.size,
   required: props.required
 }))
