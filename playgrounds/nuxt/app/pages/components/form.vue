@@ -1,68 +1,113 @@
 <script setup lang="ts">
 import * as z from 'zod'
-import type { FormSubmitEvent } from '@nuxt/ui'
-import FormExampleElements from '../../../../../docs/app/components/content/examples/form/FormExampleElements.vue'
-import FormExampleNestedList from '../../../../../docs/app/components/content/examples/form/FormExampleNestedList.vue'
-import FormExampleNested from '../../../../../docs/app/components/content/examples/form/FormExampleNested.vue'
 
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  tos: z.literal(true)
+  tos: z.literal(true),
+  contract: z.string({ error: 'Contract is required' }).min(4, 'Contract must be at least 4 characters'),
+  contact: z.object({
+    firstName: z.string({ error: 'First name is required' }).min(4, 'Name must be at least 1 character'),
+    email: z.email('Valid email is required')
+  }),
+  preferences: z.object({
+    theme: z.string({ error: 'Theme is required' }).min(4, 'Theme is required'),
+    language: z.string({ error: 'Language is required' }).min(1, 'Language is required')
+  }),
+  advanced: z.object({
+    apiKey: z.string().optional(),
+    override: z.string().optional()
+  })
 })
-
-type Schema = z.input<typeof schema>
-
-const state = reactive<Partial<Schema>>({})
-
-function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log(event.data)
-}
-
-const validateOn = ref(['input', 'change', 'blur'])
-const disabled = ref(false)
 </script>
 
 <template>
   <div class="flex flex-col gap-8">
     <div class="flex gap-4">
-      <UForm
-        :state="state"
-        :schema="schema"
-        class="gap-4 flex flex-col w-60"
-        @submit="onSubmit"
-      >
-        <UFormField label="Email" name="email">
-          <UInput v-model="state.email" placeholder="john@lennon.com" />
+      <UForm id="My Awesome Form" :schema="schema" class="w-full" #="{values}">
+        <UFormField
+          class="flex-1"
+          label="Your Contract"
+          name="contract"
+          description="Enter your contract"
+          help="This is a help text"
+          required
+        >
+          <UInput placeholder="John Lennon" class="w-full" required />
         </UFormField>
+        <UFormGroup
+          name="contact"
+          label="Contact Information (Size: lg)"
+          size="lg"
+          variant="outline"
+        >
+          <div class="flex gap-4">
+            <UFormField
+              class="flex-1"
+              label="Your Email Address"
+              name="email"
+              description="Enter the email address of the person"
+              required
+            >
+              <UInput placeholder="john@lennon.com" class="w-full" />
+            </UFormField>
+          </div>
+        </UFormGroup>
+        <UFormGroup
+          name="preferences"
+          label="Preferences (Size: sm)"
+          variant="soft"
+          size="sm"
+        >
+          <div class="grid grid-cols-2 gap-6">
+            <UFormField
+              label="Theme"
+              name="theme"
+              description="Choose your preferred theme"
+            >
+              <UInput placeholder="Dark" />
+            </UFormField>
+            <UFormField
+              label="Language"
+              name="language"
+              description="Select your language"
+            >
+              <UInput placeholder="English" />
+            </UFormField>
+          </div>
+        </UFormGroup>
 
-        <UFormField label="Password" name="password">
-          <UInput v-model="state.password" type="password" />
-        </UFormField>
+        <UFormGroup
+          name="advanced"
+          label="Advanced Settings"
+          variant="ghost"
+          size="xs"
+        >
+          <template #label="{ label }">
+            <div class="flex gap-2 items-center">
+              <span class="text-lg font-bold text-blue-600">⚙️ {{ label }}</span>
+              <span class="px-2 py-1 text-xs text-blue-800 bg-blue-100 rounded">Optional</span>
+            </div>
+          </template>
+          <UFormField
+            label="API Key"
+            name="apiKey"
+            description="Your API key for advanced features"
+          >
+            <UInput placeholder="sk-..." />
+          </UFormField>
 
-        <UFormField name="tos">
-          <UCheckbox v-model="state.tos" label="I accept the terms and conditions" />
-        </UFormField>
-
-        <div>
-          <UButton type="submit">
-            Submit
-          </UButton>
-        </div>
+          <UFormField
+            label="Large Override"
+            name="override"
+            size="lg"
+            description="This field explicitly sets size=lg"
+          >
+            <UInput placeholder="This is large despite FormGroup being xs" />
+          </UFormField>
+        </UFormGroup>
+        <pre>{{ values }}</pre>
       </UForm>
-      <FormExampleNested />
-      <FormExampleNestedList />
-    </div>
-
-    <div class="border border-default rounded-lg">
-      <div class="py-2 px-4 flex gap-4 items-center">
-        <UFormField label="Validate on" class="flex items-center gap-2">
-          <USelectMenu v-model="validateOn" :items="['input', 'change', 'blur']" multiple class="w-48" />
-        </UFormField>
-        <UCheckbox v-model="disabled" label="Disabled" />
-      </div>
-
-      <FormExampleElements :validate-on="validateOn" :disabled="disabled" class="border-t border-default p-4" />
     </div>
   </div>
 </template>
