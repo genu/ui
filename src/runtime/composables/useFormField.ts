@@ -24,6 +24,7 @@ export function useFormField<T>(props?: Props<T>) {
   const formField = inject(formFieldInjectionKey, undefined)
   const formGroup = inject(formGroupInjectionKey, undefined)
 
+  // Blocks the FormField injection to avoid duplicating events when nesting input components.
   provide(formFieldInjectionKey, undefined)
 
   const setLabelProps = (props: AriaLabelProps) => {
