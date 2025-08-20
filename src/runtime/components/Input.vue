@@ -94,7 +94,7 @@ const { inputEl, inputProps } = useTextControl({
   autocomplete: props.autocomplete,
   required: props.required,
   type: props.type
-})
+}, { inputId: 'my-id' })
 
 const inputSize = computed(() => fieldGroupSize.value || size.value)
 
