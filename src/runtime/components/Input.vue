@@ -6,8 +6,8 @@ import type { UseComponentIconsProps } from '../composables/useComponentIcons'
 import type { AvatarProps } from '../types'
 import type { AcceptableValue } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
-import type { Numberish, TextInputDOMType } from '@formwerk/core'
-import { useTextField } from '@formwerk/core'
+import type { Numberish } from '@formwerk/core'
+import { useTextControl } from '@formwerk/core'
 
 type Input = ComponentConfig<typeof theme, AppConfig, 'input'>
 
@@ -19,7 +19,7 @@ export interface InputProps<T extends AcceptableValue = AcceptableValue> extends
   as?: any
   id?: string
   name?: string
-  type?: TextInputDOMType
+  type?: 'text' | 'password' | 'email' | 'number' | 'tel' | 'url'
   /** The placeholder text when the input is empty. */
   placeholder?: string
   /**
@@ -80,29 +80,21 @@ const slots = defineSlots<InputSlots>()
 
 const appConfig = useAppConfig() as Input['AppConfig']
 
-const { name, size: formGroupSize, label, setLabelProps, setDescriptionProps, setErrorMessageProps, setIsTouched, setErrorMessage, highlight, color } = useFormField<InputProps<T>>(props)
+const { name, size: formGroupSize, highlight, color } = useFormField<InputProps<T>>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps<T>>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(props)
 
-const { inputEl, inputProps, labelProps, descriptionProps, errorMessageProps, errorMessage, isTouched } = useTextField({
+const { inputEl, inputProps } = useTextControl({
   name,
-  label: label.value ?? '',
-  type: props.type,
+  minLength: props.minLength,
+  maxLength: props.maxLength,
+  placeholder: props.placeholder,
+  disabled: props.disabled,
+  readonly: props.readonly,
   autocomplete: props.autocomplete,
   required: props.required,
-  placeholder: props.placeholder,
-  maxLength: props.maxLength,
-  minLength: props.minLength,
-  disabled: props.disabled,
-  readonly: props.readonly
+  type: props.type
 })
-
-// Initialize Parent FormField
-setLabelProps(labelProps.value)
-setDescriptionProps(descriptionProps.value)
-setErrorMessageProps(errorMessageProps.value)
-setErrorMessage(errorMessage)
-setIsTouched(isTouched)
 
 const inputSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 

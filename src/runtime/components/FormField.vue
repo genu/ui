@@ -2,7 +2,6 @@
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/form-field'
 import type { ComponentConfig } from '../types/tv'
-import type { AriaLabelProps } from '@formwerk/core'
 
 type FormField = ComponentConfig<typeof theme, AppConfig, 'formField'>
 
@@ -54,23 +53,20 @@ import { useAppConfig } from '#imports'
 import { formFieldInjectionKey } from '../composables/useFormField'
 import { tv } from '../utils/tv'
 import type { FormFieldInjectedOptions } from '../types/form'
+import { useFieldState, useFormField } from '@formwerk/core'
 
 const props = defineProps<FormFieldProps>()
 const slots = defineSlots<FormFieldSlots>()
 
 const appConfig = useAppConfig() as FormField['AppConfig']
 
+const state = useFieldState({ path: props.name })
+const { labelProps, descriptionProps, errorMessageProps } = useFormField({ label: props.label || '', description: props.description || '' }, state)
+
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.formField || {}) })({
   size: props.size,
   required: props.required
 }))
-
-/**
- * Aria props
- */
-const labelProps = ref<AriaLabelProps | null>(null)
-const descriptionProps = ref<any>(null)
-const errorMessageProps = ref<any>(null)
 
 // Input state
 const errorMessageRef = ref<Ref<string | undefined> | undefined>()
@@ -91,9 +87,6 @@ provide(formFieldInjectionKey, computed(() => ({
   description: props.description,
   help: props.help,
   label: props.label,
-  setLabelProps: props => labelProps.value = props,
-  setDescriptionProps: props => descriptionProps.value = props,
-  setErrorMessageProps: props => errorMessageProps.value = props,
   setErrorMessage: message => errorMessageRef.value = message,
   setIsTouched: touched => isTouchedRef.value = touched
 }) as FormFieldInjectedOptions<FormFieldProps>))

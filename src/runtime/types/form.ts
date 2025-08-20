@@ -4,7 +4,6 @@ import type { Schema as JoiSchema } from 'joi'
 import type { ObjectSchema as YupObjectSchema } from 'yup'
 import type { GetObjectField } from './utils'
 import type { Struct as SuperstructSchema } from 'superstruct'
-import type { AriaLabelProps } from '@formwerk/core'
 
 export interface Form<S extends FormSchema> {
   validate<T extends boolean>(opts?: { name?: keyof FormData<S, false> | (keyof FormData<S, false>)[], silent?: boolean, nested?: boolean, transform?: T }): Promise<FormData<S, T> | false>
@@ -86,9 +85,9 @@ export interface FormFieldInjectedOptions<T> {
   help?: string
   label?: string
   displayError: string | undefined
-  setLabelProps: (props: AriaLabelProps) => void
-  setDescriptionProps: (props: any) => void
-  setErrorMessageProps: (props: any) => void
+  // setLabelProps: (props: AriaLabelProps) => void
+  // setDescriptionProps: (props: any) => void
+  // setErrorMessageProps: (props: any) => void
   setErrorMessage: (errorMessage: Ref<string | undefined>) => void
   setIsTouched: (isTouched: Ref<boolean>) => void
 }
