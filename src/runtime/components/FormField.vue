@@ -61,8 +61,10 @@ const slots = defineSlots<FormFieldSlots>()
 const appConfig = useAppConfig() as FormField['AppConfig']
 
 const state = useFieldState({ path: props.name })
-const { errorMessage, fieldValue, isTouched } = state
+const { errorMessage, isTouched } = state
 const { labelProps, descriptionProps, errorMessageProps } = useFormField({ label: props.label || '', description: props.description || '' }, state)
+
+const displayError = computed(() => errorMessage.value && isTouched.value ? errorMessage.value : undefined)
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.formField || {}) })({
   size: props.size,
@@ -75,14 +77,12 @@ provide(formFieldInjectionKey, computed(() => ({
   eagerValidation: props.eagerValidation,
   validateOnInputDelay: props.validateOnInputDelay,
   errorPattern: props.errorPattern,
-  hasError: !!errorMessage.value
+  hasError: !!displayError.value
 }) as FormFieldInjectedOptions<FormFieldProps>))
 </script>
 
 <template>
   <Primitive :as="as" :class="ui.root({ class: [props.ui?.root, props.class] })">
-    <pre>fieldValue:{{ fieldValue }}</pre>
-    <pre>isTouched: {{ isTouched }}</pre>
     <div :class="ui.wrapper({ class: props.ui?.wrapper })">
       <div v-if="label || !!slots.label" :class="ui.labelWrapper({ class: props.ui?.labelWrapper })">
         <Label v-bind="labelProps" :class="ui.label({ class: props.ui?.label })">
@@ -105,11 +105,11 @@ provide(formFieldInjectionKey, computed(() => ({
     </div>
 
     <div :class="[(label || !!slots.label || description || !!slots.description) && ui.container({ class: props.ui?.container })]">
-      <slot :error="errorMessage" />
+      <slot :error="displayError" />
 
-      <div v-if="(typeof error === 'string' || errorMessage) || !!slots.error" v-bind="errorMessageProps" :class="ui.error({ class: props.ui?.error })">
-        <slot name="error" :error="errorMessage">
-          {{ errorMessage }}
+      <div v-if="(typeof displayError === 'string' || displayError) || !!slots.error" v-bind="errorMessageProps" :class="ui.error({ class: props.ui?.error })">
+        <slot name="error" :error="displayError">
+          {{ displayError }}
         </slot>
       </div>
       <div v-else-if="help || !!slots.help" :id="`${labelProps?.id}-help`" :class="ui.help({ class: props.ui?.help })">
