@@ -27,9 +27,8 @@ export function useFormField<T>(props?: Props<T>) {
 
   return {
     name: computed(() => props?.name ?? formField?.value?.name),
-    label: computed(() => props?.label ?? formField?.value?.label),
     size: computed(() => props?.size ?? formField?.value?.size ?? formGroup?.value?.size),
-    color: computed(() => formField?.value?.displayError ? 'error' : props?.color),
-    highlight: computed(() => formField?.value?.displayError ? true : props?.highlight)
+    color: computed(() => formField?.value?.hasError ? 'error' : props?.color),
+    highlight: computed(() => formField?.value?.hasError ? true : props?.highlight)
   }
 }

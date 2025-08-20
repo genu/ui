@@ -77,17 +77,8 @@ export interface FormInjectedOptions {
 export interface FormFieldInjectedOptions<T> {
   name?: string
   size?: GetObjectField<T, 'size'>
+  hasError?: boolean
   eagerValidation?: boolean
   validateOnInputDelay?: number
   errorPattern?: RegExp
-  hint?: string
-  description?: string
-  help?: string
-  label?: string
-  displayError: string | undefined
-  // setLabelProps: (props: AriaLabelProps) => void
-  // setDescriptionProps: (props: any) => void
-  // setErrorMessageProps: (props: any) => void
-  setErrorMessage: (errorMessage: Ref<string | undefined>) => void
-  setIsTouched: (isTouched: Ref<boolean>) => void
 }

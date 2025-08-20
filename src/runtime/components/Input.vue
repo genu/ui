@@ -80,7 +80,7 @@ const slots = defineSlots<InputSlots>()
 
 const appConfig = useAppConfig() as Input['AppConfig']
 
-const { name, size: formGroupSize, highlight, color } = useFormField<InputProps<T>>(props)
+const { name, size, highlight, color } = useFormField<InputProps<T>>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps<T>>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(props)
 
@@ -96,7 +96,7 @@ const { inputEl, inputProps } = useTextControl({
   type: props.type
 })
 
-const inputSize = computed(() => fieldGroupSize.value || formGroupSize.value)
+const inputSize = computed(() => fieldGroupSize.value || size.value)
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.input || {}) })({
   type: props.type as Input['variants']['type'],

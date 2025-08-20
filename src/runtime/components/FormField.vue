@@ -47,7 +47,7 @@ export interface FormFieldSlots {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, provide, type Ref } from 'vue'
+import { computed, provide } from 'vue'
 import { Primitive, Label } from 'reka-ui'
 import { useAppConfig } from '#imports'
 import { formFieldInjectionKey } from '../composables/useFormField'
@@ -61,6 +61,7 @@ const slots = defineSlots<FormFieldSlots>()
 const appConfig = useAppConfig() as FormField['AppConfig']
 
 const state = useFieldState({ path: props.name })
+const { errorMessage, fieldValue, isTouched } = state
 const { labelProps, descriptionProps, errorMessageProps } = useFormField({ label: props.label || '', description: props.description || '' }, state)
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.formField || {}) })({
@@ -68,32 +69,20 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.formField ||
   required: props.required
 }))
 
-// Input state
-const errorMessageRef = ref<Ref<string | undefined> | undefined>()
-const isTouchedRef = ref<Ref<boolean> | undefined>()
-
-const displayError = computed(() =>
-  isTouchedRef.value?.value ? errorMessageRef.value?.value : ''
-)
-
 provide(formFieldInjectionKey, computed(() => ({
-  displayError: displayError.value,
   name: props.name,
   size: props.size,
   eagerValidation: props.eagerValidation,
   validateOnInputDelay: props.validateOnInputDelay,
   errorPattern: props.errorPattern,
-  hint: props.hint,
-  description: props.description,
-  help: props.help,
-  label: props.label,
-  setErrorMessage: message => errorMessageRef.value = message,
-  setIsTouched: touched => isTouchedRef.value = touched
+  hasError: !!errorMessage.value
 }) as FormFieldInjectedOptions<FormFieldProps>))
 </script>
 
 <template>
   <Primitive :as="as" :class="ui.root({ class: [props.ui?.root, props.class] })">
+    <pre>fieldValue:{{ fieldValue }}</pre>
+    <pre>isTouched: {{ isTouched }}</pre>
     <div :class="ui.wrapper({ class: props.ui?.wrapper })">
       <div v-if="label || !!slots.label" :class="ui.labelWrapper({ class: props.ui?.labelWrapper })">
         <Label v-bind="labelProps" :class="ui.label({ class: props.ui?.label })">
@@ -116,11 +105,11 @@ provide(formFieldInjectionKey, computed(() => ({
     </div>
 
     <div :class="[(label || !!slots.label || description || !!slots.description) && ui.container({ class: props.ui?.container })]">
-      <slot :error="displayError" />
+      <slot :error="errorMessage" />
 
-      <div v-if="(typeof error === 'string' || displayError) || !!slots.error" v-bind="errorMessageProps" :class="ui.error({ class: props.ui?.error })">
-        <slot name="error" :error="displayError">
-          {{ displayError }}
+      <div v-if="(typeof error === 'string' || errorMessage) || !!slots.error" v-bind="errorMessageProps" :class="ui.error({ class: props.ui?.error })">
+        <slot name="error" :error="errorMessage">
+          {{ errorMessage }}
         </slot>
       </div>
       <div v-else-if="help || !!slots.help" :id="`${labelProps?.id}-help`" :class="ui.help({ class: props.ui?.help })">
