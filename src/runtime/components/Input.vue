@@ -6,7 +6,7 @@ import type { UseComponentIconsProps } from '../composables/useComponentIcons'
 import type { AvatarProps } from '../types'
 import type { AcceptableValue } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
-import type { Numberish } from '@formwerk/core'
+import type { Numberish, TextInputDOMType } from '@formwerk/core'
 import { useTextControl } from '@formwerk/core'
 
 type Input = ComponentConfig<typeof theme, AppConfig, 'input'>
@@ -19,7 +19,7 @@ export interface InputProps<T extends AcceptableValue = AcceptableValue> extends
   as?: any
   id?: string
   name?: string
-  type?: 'text' | 'password' | 'email' | 'number' | 'tel' | 'url'
+  type?: TextInputDOMType
   /** The placeholder text when the input is empty. */
   placeholder?: string
   /**
