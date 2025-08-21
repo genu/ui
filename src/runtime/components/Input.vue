@@ -84,7 +84,7 @@ const { name, size } = useFormField<InputProps<T>>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps<T>>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(props)
 
-const formFieldContext = useFormFieldContext()!
+const formFieldContext = useFormFieldContext()
 
 const { inputEl, inputProps } = useTextControl({
   name,
@@ -99,7 +99,7 @@ const { inputEl, inputProps } = useTextControl({
   validateOn: ['change', 'blur', 'input']
 })
 
-const hasError = computed(() => !!(formFieldContext.errorMessage.value && formFieldContext.isTouched.value))
+const hasError = computed(() => !!(formFieldContext?.errorMessage.value && formFieldContext?.isTouched.value))
 const inputSize = computed(() => fieldGroupSize.value || size.value)
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.input || {}) })({
