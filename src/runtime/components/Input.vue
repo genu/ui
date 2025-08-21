@@ -7,7 +7,7 @@ import type { AvatarProps } from '../types'
 import type { AcceptableValue } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
 import type { Numberish, TextInputDOMType } from '@formwerk/core'
-import { useTextControl } from '@formwerk/core'
+import { useTextControl, useFormFieldContext } from '@formwerk/core'
 
 type Input = ComponentConfig<typeof theme, AppConfig, 'input'>
 
@@ -80,9 +80,11 @@ const slots = defineSlots<InputSlots>()
 
 const appConfig = useAppConfig() as Input['AppConfig']
 
-const { name, size, highlight, color } = useFormField<InputProps<T>>(props)
+const { name, size } = useFormField<InputProps<T>>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps<T>>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(props)
+
+const formFieldContext = useFormFieldContext()!
 
 const { inputEl, inputProps } = useTextControl({
   name,
@@ -97,15 +99,16 @@ const { inputEl, inputProps } = useTextControl({
   validateOn: ['change', 'blur', 'input']
 })
 
+const hasError = computed(() => !!(formFieldContext.errorMessage.value && formFieldContext.isTouched.value))
 const inputSize = computed(() => fieldGroupSize.value || size.value)
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.input || {}) })({
   type: props.type as Input['variants']['type'],
-  color: color.value,
+  color: hasError.value ? 'error' : props.color,
   variant: props.variant,
   size: inputSize?.value,
   loading: props.loading,
-  highlight: highlight.value,
+  highlight: hasError.value,
   leading: isLeading.value || !!props.avatar || !!slots.leading,
   trailing: isTrailing.value || !!slots.trailing,
   fieldGroup: orientation.value
