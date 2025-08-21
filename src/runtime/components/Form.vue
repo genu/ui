@@ -68,10 +68,12 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.form || {}) 
 
 const errors = computed(() => form.getErrors())
 const isTouched = computed(() => form.isTouched())
+const isDirty = computed(() => form.isDirty())
+const isValid = computed(() => form.isValid())
 </script>
 
 <template>
   <form v-bind="formProps" :class="ui({ class: props.class })">
-    <slot :values="values" :errors="errors" :is-touched="isTouched" />
+    <slot :values="values" :errors="errors" :is-touched="isTouched" :is-dirty="isDirty" :is-valid="isValid" />
   </form>
 </template>
