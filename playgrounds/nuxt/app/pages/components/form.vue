@@ -35,7 +35,9 @@ const schema = z.object({
         >
           <UInput placeholder="John Lennon" class="w-full" required />
         </UFormField>
-        <UFormGroup
+        <pre>{{ values }}</pre>
+
+        <!-- <UFormGroup
           name="contact"
           label="Contact Information (Size: lg)"
           size="lg"
@@ -105,8 +107,7 @@ const schema = z.object({
           >
             <UInput placeholder="This is large despite FormGroup being xs" />
           </UFormField>
-        </UFormGroup>
-        <pre>{{ values }}</pre>
+        </UFormGroup> -->
       </UForm>
     </div>
   </div>
