@@ -53,16 +53,14 @@ import { useAppConfig } from '#imports'
 import { formFieldInjectionKey } from '../composables/useFormField'
 import { tv } from '../utils/tv'
 import type { FormFieldInjectedOptions } from '../types/form'
-import { useFieldState, useFormField } from '@formwerk/core'
+import { useFormField } from '@formwerk/core'
 
 const props = defineProps<FormFieldProps>()
 const slots = defineSlots<FormFieldSlots>()
 
 const appConfig = useAppConfig() as FormField['AppConfig']
 
-const state = useFieldState({ path: props.name })
-const { errorMessage, isTouched } = state
-const { labelProps, descriptionProps, errorMessageProps } = useFormField({ label: props.label || '', description: props.description || '' }, state)
+const { labelProps, descriptionProps, errorMessageProps, errorMessage, isTouched } = useFormField({ label: props.label || '', description: props.description })
 
 const displayError = computed(() => errorMessage.value && isTouched.value ? errorMessage.value : undefined)
 

@@ -93,8 +93,9 @@ const { inputEl, inputProps } = useTextControl({
   readonly: props.readonly,
   autocomplete: props.autocomplete,
   required: props.required,
-  type: props.type
-}, { inputId: 'my-id' })
+  type: props.type,
+  validateOn: ['change', 'blur', 'input']
+})
 
 const inputSize = computed(() => fieldGroupSize.value || size.value)
 
@@ -125,11 +126,19 @@ onMounted(() => {
 defineExpose({
   inputEl
 })
+
+const onInput = async (e: unknown) => {
+  // const v = await validate()
+  // console.log('v', v)
+  // setTouched(true)
+  // setValue((e.target as HTMLInputElement)?.value as unknown as string)
+  // console.log('onInput', e)
+}
 </script>
 
 <template>
   <Primitive :as="as" :class="ui.root({ class: [props.ui?.root, props.class] })">
-    <input :class="ui.base({ class: props.ui?.base })" v-bind="{ ...$attrs, ...inputProps }">
+    <input :class="ui.base({ class: props.ui?.base })" v-bind="{ ...$attrs, ...inputProps }" @input="() => onInput($event)">
     <slot />
 
     <span v-if="isLeading || !!avatar || !!slots.leading" :class="ui.leading({ class: props.ui?.leading })">
