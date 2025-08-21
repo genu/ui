@@ -2,29 +2,14 @@
 import * as z from 'zod'
 
 const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  tos: z.literal(true),
-  contract: z.string({ error: 'Contract is required' }).min(4, 'Contract must be at least 4 characters'),
-  contact: z.object({
-    firstName: z.string({ error: 'First name is required' }).min(4, 'Name must be at least 1 character'),
-    email: z.email('Valid email is required')
-  }),
-  preferences: z.object({
-    theme: z.string({ error: 'Theme is required' }).min(4, 'Theme is required'),
-    language: z.string({ error: 'Language is required' }).min(1, 'Language is required')
-  }),
-  advanced: z.object({
-    apiKey: z.string().optional(),
-    override: z.string().optional()
-  })
+  contract: z.string({ error: 'Contract is required' }).min(4, 'Contract must be at least 4 characters')
 })
 </script>
 
 <template>
   <div class="flex flex-col gap-8">
     <div class="flex gap-4">
-      <UForm id="My Awesome Form" :schema="schema" class="w-full" #="{values}">
+      <UForm id="My Awesome Form" :schema="schema" class="w-full" #="{values,errors,isTouched}">
         <UFormField
           class="flex-1"
           label="Your Contract"
@@ -33,9 +18,8 @@ const schema = z.object({
           help="This is a help text"
           required
         >
-          <UInput placeholder="John Lennon" class="w-full" required />
+          <UInput placeholder="John Lennon" class="w-full" />
         </UFormField>
-        <pre>{{ values }}</pre>
 
         <!-- <UFormGroup
           name="contact"

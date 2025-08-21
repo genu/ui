@@ -60,7 +60,7 @@ const slots = defineSlots<FormFieldSlots>()
 
 const appConfig = useAppConfig() as FormField['AppConfig']
 
-const { labelProps, descriptionProps, errorMessageProps, errorMessage, isTouched } = useFormField({ label: props.label || '', description: props.description })
+const { labelProps, descriptionProps, errorMessageProps, errorMessage, isTouched } = useFormField({ path: props.name || '', label: props.label || '', description: props.description })
 
 const displayError = computed(() => errorMessage.value && isTouched.value ? errorMessage.value : undefined)
 
