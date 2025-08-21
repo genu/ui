@@ -126,19 +126,11 @@ onMounted(() => {
 defineExpose({
   inputEl
 })
-
-const onInput = async (e: unknown) => {
-  // const v = await validate()
-  // console.log('v', v)
-  // setTouched(true)
-  // setValue((e.target as HTMLInputElement)?.value as unknown as string)
-  // console.log('onInput', e)
-}
 </script>
 
 <template>
   <Primitive :as="as" :class="ui.root({ class: [props.ui?.root, props.class] })">
-    <input :class="ui.base({ class: props.ui?.base })" v-bind="{ ...$attrs, ...inputProps }" @input="() => onInput($event)">
+    <input :class="ui.base({ class: props.ui?.base })" v-bind="{ ...$attrs, ...inputProps }">
     <slot />
 
     <span v-if="isLeading || !!avatar || !!slots.leading" :class="ui.leading({ class: props.ui?.leading })">
