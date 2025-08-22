@@ -82,3 +82,7 @@ export interface FormFieldInjectedOptions<T> {
   validateOnInputDelay?: number
   errorPattern?: RegExp
 }
+
+export interface FormGroupInjectedOptions<T> {
+  size?: GetObjectField<T, 'size'>
+}

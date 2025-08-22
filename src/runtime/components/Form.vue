@@ -2,12 +2,13 @@
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/form'
 import type { ComponentConfig } from '../types/tv'
-import type { SchemaFormProps, GenericFormSchema } from '@formwerk/core'
+import type { GenericFormSchema, ConsumableData, FormObject, SchemaFormProps } from '@formwerk/core'
 import type { FormInputEvents } from '../types'
+import type { StandardSchemaV1 } from '@standard-schema/spec'
 
 type FormConfig = ComponentConfig<typeof theme, AppConfig, 'form'>
 
-export interface FormProps<TSchema extends GenericFormSchema, T extends boolean = true> extends SchemaFormProps<TSchema> {
+interface WithSchema<TSchema extends GenericFormSchema, TOutput extends FormObject = StandardSchemaV1.InferOutput<TSchema>, T extends boolean = true> extends SchemaFormProps<TSchema> {
   /**
    * The list of input events that trigger the form validation.
    * @remarks The form always validates on submit.
@@ -35,6 +36,7 @@ export interface FormProps<TSchema extends GenericFormSchema, T extends boolean 
    */
   loadingAuto?: boolean
   class?: any
+  onSubmit?: (values: ConsumableData<TOutput>) => void | Promise<void>
 }
 
 export interface FormSlots {
@@ -42,38 +44,63 @@ export interface FormSlots {
 }
 </script>
 
-<script lang="ts" setup generic="TSchema extends GenericFormSchema, T extends boolean = true">
+<script lang="ts" setup generic="TSchema extends GenericFormSchema, TInput  extends FormObject = StandardSchemaV1.InferInput<TSchema>, TOutput extends FormObject = StandardSchemaV1.InferOutput<TSchema>, T extends boolean = true">
 import { provide, ref, computed, readonly, type Ref } from 'vue'
 import { formLoadingInjectionKey, useAppConfig } from '#imports'
 import { tv } from '../utils/tv'
 
 import { useForm } from '@formwerk/core'
 
-const props = withDefaults(defineProps<FormProps<TSchema, T>>(), {
+const props = withDefaults(defineProps<WithSchema<TSchema, TOutput, T>>(), {
   validateOn: () => ['blur', 'change', 'input'] as FormInputEvents[],
   attach: true,
-  transform: () => true as T,
+  // transform: () => true as T,
   loadingAuto: true
 })
 
-const { formProps, handleSubmit, getIssues, values, ...form } = useForm(props)
+const { formProps, values, ...form } = useForm(props)
 
 const loading = ref(false)
 provide(formLoadingInjectionKey, readonly(loading))
 
-form.reset()
+const onSubmitWrapper = form.handleSubmit(async (payload) => {
+  loading.value = props.loadingAuto && true
+
+  // await props.onSubmit?.(payload)
+})
+
 const appConfig = useAppConfig() as FormConfig['AppConfig']
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.form || {}) }))
 
+const disabled = computed(() => props.disabled || loading.value)
 const errors = computed(() => form.getErrors())
 const isTouched = computed(() => form.isTouched())
 const isDirty = computed(() => form.isDirty())
 const isValid = computed(() => form.isValid())
+
+defineExpose({
+  validate: form.validate,
+  submit: onSubmitWrapper,
+  errors,
+  clear: form.setErrors,
+  getErrors: form.getErrors,
+  disabled,
+  loading,
+  isValid
+
+})
 </script>
 
 <template>
-  <form v-bind="formProps" :class="ui({ class: props.class })">
-    <slot :values="values" :errors="errors" :is-touched="isTouched" :is-dirty="isDirty" :is-valid="isValid" />
+  <form v-bind="formProps" :class="ui({ class: props.class })" @submit.prevent="onSubmitWrapper">
+    <slot
+      :values
+      :errors
+      :is-touched
+      :is-dirty
+      :is-valid
+      :loading
+    />
   </form>
 </template>

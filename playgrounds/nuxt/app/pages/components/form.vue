@@ -2,14 +2,37 @@
 import * as z from 'zod'
 
 const schema = z.object({
-  contract: z.string({ error: 'Contract is required' }).min(4, 'Contract must be at least 4 characters')
+  contract: z.string({ error: 'Contract is required' }).min(4, 'Contract must be at least 4 characters'),
+  company: z.object({
+    name: z.string({ error: 'Company name is required' }).min(4, 'Company name must be at least 4 characters')
+  }),
+  preferences: z.object({
+    theme: z.string({ error: 'Theme is required' }).min(4, 'Theme must be at least 4 characters'),
+    language: z.string({ error: 'Language is required' }).min(4, 'Language must be at least 4 characters')
+  }),
+  advanced: z.object({
+    apiKey: z.string({ error: 'API key is required' }).min(4, 'API key must be at least 4 characters'),
+    override: z.string({ error: 'Override is required' }).min(4, 'Override must be at least 4 characters')
+  })
 })
 </script>
 
 <template>
   <div class="flex flex-col gap-8">
     <div class="flex gap-4">
-      <UForm id="My Awesome Form" :schema="schema" class="w-full" #="{values,errors,isTouched}">
+      <UForm
+        id="My Awesome Form"
+        :schema="schema"
+        :initial-values="{
+          contract: 'initial data'
+        }"
+        class=""
+        #="{values,errors,isTouched}"
+        @submit="(data) => {
+          const d = data.toJSON()
+          console.log(d.contract)
+        }"
+      >
         <UFormField
           class="flex-1"
           label="Your Contract"
@@ -21,21 +44,20 @@ const schema = z.object({
           <UInput placeholder="John Lennon" class="w-full" />
         </UFormField>
 
-        <!-- <UFormGroup
-          name="contact"
-          label="Contact Information (Size: lg)"
-          size="lg"
+        <UFormGroup
+          name="company"
+          label="Company Information (Size: lg)"
           variant="outline"
         >
           <div class="flex gap-4">
             <UFormField
               class="flex-1"
-              label="Your Email Address"
-              name="email"
-              description="Enter the email address of the person"
+              label="Company Name"
+              name="name"
+              description="Enter the name of the company"
               required
             >
-              <UInput placeholder="john@lennon.com" class="w-full" />
+              <UInput placeholder="Apple Inc." class="w-full" />
             </UFormField>
           </div>
         </UFormGroup>
@@ -91,7 +113,10 @@ const schema = z.object({
           >
             <UInput placeholder="This is large despite FormGroup being xs" />
           </UFormField>
-        </UFormGroup> -->
+        </UFormGroup>
+
+        Form Data:
+        <pre>{{ values }}</pre>
       </UForm>
     </div>
   </div>
