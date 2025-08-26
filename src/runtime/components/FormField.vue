@@ -72,6 +72,7 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.formField ||
 provide(formFieldInjectionKey, computed(() => ({
   name: props.name,
   size: props.size,
+  hasError: errorMessage.value && isTouched.value,
   eagerValidation: props.eagerValidation,
   validateOnInputDelay: props.validateOnInputDelay,
   errorPattern: props.errorPattern

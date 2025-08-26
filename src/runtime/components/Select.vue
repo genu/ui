@@ -170,18 +170,18 @@ const portalProps = usePortal(toRef(() => props.portal))
 const contentProps = toRef(() => defu(props.content, { side: 'bottom', sideOffset: 8, collisionPadding: 8, position: 'popper' }) as SelectContentProps)
 const arrowProps = toRef(() => props.arrow as SelectArrowProps)
 
-const { emitFormChange, emitFormInput, emitFormBlur, emitFormFocus, size: formGroupSize, color, id, name, highlight, disabled, ariaAttrs } = useFormField<InputProps>(props)
+const { size: formGroupSize, name } = useFormField<InputProps>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(toRef(() => defu(props, { trailingIcon: appConfig.ui.icons.chevronDown })))
 
 const selectSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.select || {}) })({
-  color: color.value,
+  // color: color.value,
   variant: props.variant,
   size: selectSize?.value,
   loading: props.loading,
-  highlight: highlight.value,
+  // highlight: highlight.value,
   leading: isLeading.value || !!props.avatar || !!slots.leading,
   trailing: isTrailing.value || !!slots.trailing,
   fieldGroup: orientation.value
@@ -236,18 +236,18 @@ function onUpdate(value: any) {
   const event = new Event('change', { target: { value } })
   emits('change', event)
 
-  emitFormChange()
-  emitFormInput()
+  // emitFormChange()
+  // emitFormInput()
 }
 function onUpdateOpen(value: boolean) {
   if (!value) {
     const event = new FocusEvent('blur')
     emits('blur', event)
-    emitFormBlur()
+    // emitFormBlur()
   } else {
     const event = new FocusEvent('focus')
     emits('focus', event)
-    emitFormFocus()
+    // emitFormFocus()
   }
 }
 
@@ -277,7 +277,7 @@ defineExpose({
       :id="id"
       ref="triggerRef"
       :class="ui.base({ class: [props.ui?.base, props.class] })"
-      v-bind="{ ...$attrs, ...ariaAttrs }"
+      v-bind="{ ...$attrs }"
     >
       <span v-if="isLeading || !!avatar || !!slots.leading" :class="ui.leading({ class: props.ui?.leading })">
         <slot name="leading" :model-value="(modelValue as GetModelValue<T, VK, M>)" :open="open" :ui="ui">

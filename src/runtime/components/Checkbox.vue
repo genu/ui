@@ -3,6 +3,7 @@ import type { CheckboxRootProps } from 'reka-ui'
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/checkbox'
 import type { ComponentConfig } from '../types/tv'
+import { useFormFieldContext, useCustomControl } from '@formwerk/core'
 
 type Checkbox = ComponentConfig<typeof theme, AppConfig, 'checkbox'>
 
@@ -58,7 +59,7 @@ export interface CheckboxSlots {
 </script>
 
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { Primitive, CheckboxRoot, CheckboxIndicator, Label, useForwardProps } from 'reka-ui'
 import { reactivePick } from '@vueuse/core'
 import { useAppConfig } from '#imports'
@@ -78,8 +79,17 @@ const appConfig = useAppConfig() as Checkbox['AppConfig']
 
 const rootProps = useForwardProps(reactivePick(props, 'required', 'value', 'defaultValue'))
 
-const { id: _id, emitFormChange, emitFormInput, size, color, name, disabled, ariaAttrs } = useFormField<CheckboxProps>(props)
-const id = _id.value ?? useId()
+const { size, name, color, disabled } = useFormField<CheckboxProps>(props)
+
+const fieldContext = useFormFieldContext<boolean>()
+
+const fieldValue = fieldContext?.fieldValue
+
+const { controlProps } = useCustomControl<boolean>({
+  name,
+  disabled: props.disabled,
+  modelValue
+})
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.checkbox || {}) })({
   size: size.value,
@@ -91,11 +101,15 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.checkbox || 
 }))
 
 function onUpdate(value: any) {
+  if (fieldContext) {
+    fieldContext.setValue(value)
+  } else {
+    modelValue.value = value
+  }
+
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
-  emitFormChange()
-  emitFormInput()
 }
 </script>
 
@@ -104,11 +118,9 @@ function onUpdate(value: any) {
   <Primitive :as="(!variant || variant === 'list') ? as : Label" :class="ui.root({ class: [props.ui?.root, props.class] })">
     <div :class="ui.container({ class: props.ui?.container })">
       <CheckboxRoot
-        :id="id"
-        v-bind="{ ...rootProps, ...$attrs, ...ariaAttrs }"
-        v-model="modelValue"
+        v-bind="{ ...rootProps, ...$attrs, ...controlProps }"
+        :model-value="fieldValue"
         :name="name"
-        :disabled="disabled"
         :class="ui.base({ class: props.ui?.base })"
         @update:model-value="onUpdate"
       >
@@ -122,7 +134,7 @@ function onUpdate(value: any) {
     </div>
 
     <div v-if="(label || !!slots.label) || (description || !!slots.description)" :class="ui.wrapper({ class: props.ui?.wrapper })">
-      <component :is="(!variant || variant === 'list') ? Label : 'p'" v-if="label || !!slots.label" :for="id" :class="ui.label({ class: props.ui?.label })">
+      <component :is="(!variant || variant === 'list') ? Label : 'p'" v-if="label || !!slots.label" :for="controlProps.id" :class="ui.label({ class: props.ui?.label })">
         <slot name="label" :label="label">
           {{ label }}
         </slot>

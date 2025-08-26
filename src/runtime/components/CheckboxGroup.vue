@@ -5,6 +5,7 @@ import theme from '#build/ui/checkbox-group'
 import type { CheckboxProps } from '../types'
 import type { AcceptableValue } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
+import { useCustomControl, useFormFieldContext } from '@formwerk/core'
 
 type CheckboxGroup = ComponentConfig<typeof theme, AppConfig, 'checkboxGroup'>
 
@@ -74,7 +75,7 @@ export interface CheckboxGroupSlots<T extends CheckboxGroupItem = CheckboxGroupI
 </script>
 
 <script setup lang="ts" generic="T extends CheckboxGroupItem">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { CheckboxGroupRoot, useForwardProps, useForwardPropsEmits } from 'reka-ui'
 import { reactivePick } from '@vueuse/core'
 import { useAppConfig } from '#imports'
@@ -98,8 +99,13 @@ const rootProps = useForwardPropsEmits(reactivePick(props, 'as', 'modelValue', '
 const checkboxProps = useForwardProps(reactivePick(props, 'variant', 'indicator', 'icon'))
 const proxySlots = omit(slots, ['legend'])
 
-const { emitFormChange, emitFormInput, color, name, size, id: _id, disabled, ariaAttrs } = useFormField<CheckboxGroupProps<T>>(props, { bind: false })
-const id = _id.value ?? useId()
+const { color, name, size, disabled } = useFormField<CheckboxGroupProps<T>>(props)
+
+const fieldContext = useFormFieldContext<CheckboxGroupProps<T>>()
+const { controlProps } = useCustomControl<CheckboxGroupProps<T>>({
+  name,
+  disabled: props.disabled
+})
 
 const ui = computed(() => tv({ extend: theme, ...(appConfig.ui?.checkboxGroup || {}) })({
   size: size.value,
@@ -112,7 +118,7 @@ const ui = computed(() => tv({ extend: theme, ...(appConfig.ui?.checkboxGroup ||
 function normalizeItem(item: any) {
   if (item === null) {
     return {
-      id: `${id}:null`,
+      id: `${controlProps.value.id}:null`,
       value: undefined,
       label: undefined
     }
@@ -120,7 +126,7 @@ function normalizeItem(item: any) {
 
   if (typeof item === 'string' || typeof item === 'number') {
     return {
-      id: `${id}:${item}`,
+      id: `${controlProps.value.id}:${item}`,
       value: String(item),
       label: String(item)
     }
@@ -135,7 +141,7 @@ function normalizeItem(item: any) {
     value,
     label,
     description,
-    id: `${id}:${value}`
+    id: `${controlProps.value.id}:${value}`
   }
 }
 
@@ -147,25 +153,25 @@ const normalizedItems = computed(() => {
 })
 
 function onUpdate(value: any) {
+  fieldContext?.setValue(value)
+
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
-  emitFormChange()
-  emitFormInput()
 }
 </script>
 
 <!-- eslint-disable vue/no-template-shadow -->
 <template>
   <CheckboxGroupRoot
-    :id="id"
+    :id="controlProps.id"
     v-bind="rootProps"
     :name="name"
     :disabled="disabled"
     :class="ui.root({ class: [props.ui?.root, props.class] })"
     @update:model-value="onUpdate"
   >
-    <fieldset :class="ui.fieldset({ class: props.ui?.fieldset })" v-bind="ariaAttrs">
+    <fieldset :class="ui.fieldset({ class: props.ui?.fieldset })" v-bind="controlProps">
       <legend v-if="legend || !!slots.legend" :class="ui.legend({ class: props.ui?.legend })">
         <slot name="legend">
           {{ legend }}

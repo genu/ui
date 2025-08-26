@@ -214,7 +214,7 @@ const portalProps = usePortal(toRef(() => props.portal))
 const contentProps = toRef(() => defu(props.content, { side: 'bottom', sideOffset: 8, collisionPadding: 8, position: 'popper' }) as ComboboxContentProps)
 const arrowProps = toRef(() => props.arrow as ComboboxArrowProps)
 
-const { emitFormBlur, emitFormFocus, emitFormChange, emitFormInput, size: formGroupSize, color, id, name, highlight, disabled, ariaAttrs } = useFormField<InputProps>(props)
+const { size: formGroupSize, name } = useFormField<InputProps>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(toRef(() => defu(props, { trailingIcon: appConfig.ui.icons.chevronDown })))
 
@@ -223,11 +223,11 @@ const inputSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 const [DefineCreateItemTemplate, ReuseCreateItemTemplate] = createReusableTemplate()
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.inputMenu || {}) })({
-  color: color.value,
+  // color: color.value,
   variant: props.variant,
   size: inputSize?.value,
   loading: props.loading,
-  highlight: highlight.value,
+  // highlight: highlight.value,
   leading: isLeading.value || !!props.avatar || !!slots.leading,
   trailing: isTrailing.value || !!slots.trailing,
   multiple: props.multiple,
@@ -321,8 +321,8 @@ function onUpdate(value: any) {
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
-  emitFormChange()
-  emitFormInput()
+  // emitFormChange()
+  // emitFormInput()
 
   if (props.resetSearchTermOnSelect) {
     searchTerm.value = ''
@@ -331,12 +331,12 @@ function onUpdate(value: any) {
 
 function onBlur(event: FocusEvent) {
   emits('blur', event)
-  emitFormBlur()
+  // emitFormBlur()
 }
 
 function onFocus(event: FocusEvent) {
   emits('focus', event)
-  emitFormFocus()
+  // emitFormFocus()
 }
 
 function onUpdateOpen(value: boolean) {
@@ -346,7 +346,7 @@ function onUpdateOpen(value: boolean) {
     const event = new FocusEvent('blur')
 
     emits('blur', event)
-    emitFormBlur()
+    // emitFormBlur()
 
     // Since we use `displayValue` prop inside ComboboxInput we should reset searchTerm manually
     // https://reka-ui.com/docs/components/combobox#api-reference
@@ -360,7 +360,7 @@ function onUpdateOpen(value: boolean) {
   } else {
     const event = new FocusEvent('focus')
     emits('focus', event)
-    emitFormFocus()
+    // emitFormFocus()
     clearTimeout(timeoutId)
   }
 }
@@ -458,7 +458,7 @@ defineExpose({
           <TagsInputInput
             :id="id"
             ref="inputRef"
-            v-bind="{ ...$attrs, ...ariaAttrs }"
+            v-bind="{ ...$attrs }"
             :placeholder="placeholder"
             :class="ui.tagsInput({ class: props.ui?.tagsInput })"
             @keydown.enter.prevent
@@ -471,7 +471,7 @@ defineExpose({
         :id="id"
         ref="inputRef"
         :display-value="displayValue"
-        v-bind="{ ...$attrs, ...ariaAttrs }"
+        v-bind="{ ...$attrs }"
         :type="type"
         :placeholder="placeholder"
         :required="required"
