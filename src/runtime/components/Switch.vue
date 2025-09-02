@@ -3,7 +3,7 @@ import type { SwitchRootProps } from 'reka-ui'
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/switch'
 import type { ComponentConfig } from '../types/tv'
-import { useFormFieldContext, useCustomControl } from '@formwerk/core'
+import { useCustomControl } from '@formwerk/core'
 
 type Switch = ComponentConfig<typeof theme, AppConfig, 'switch'>
 
@@ -78,11 +78,7 @@ const rootProps = useForwardProps(reactivePick(props, 'required', 'value', 'defa
 
 const { size, name, color, disabled } = useFormField<SwitchProps>(props)
 
-const fieldContext = useFormFieldContext<boolean>()
-
-const fieldValue = fieldContext?.fieldValue
-
-const { controlProps } = useCustomControl<boolean>({
+const { controlProps, fieldValue, setValue } = useCustomControl<boolean>({
   name,
   disabled: props.disabled,
   modelValue
@@ -97,7 +93,7 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.switch || {}
 }))
 
 function onUpdate(value: any) {
-  fieldContext?.setValue(value)
+  setValue(value)
   modelValue.value = value
 
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
