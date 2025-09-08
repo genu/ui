@@ -4,6 +4,7 @@ import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/slider'
 import type { TooltipProps } from '../types'
 import type { ComponentConfig } from '../types/tv'
+import { useCustomControl } from '@formwerk/core'
 
 type Slider = ComponentConfig<typeof theme, AppConfig, 'slider'>
 
@@ -67,7 +68,9 @@ const appConfig = useAppConfig() as Slider['AppConfig']
 
 const rootProps = useForwardPropsEmits(reactivePick(props, 'as', 'orientation', 'min', 'max', 'step', 'minStepsBetweenThumbs', 'inverted'), emits)
 
-const { id, emitFormChange, emitFormInput, size, color, name, disabled, ariaAttrs } = useFormField<SliderProps>(props)
+const { name, size, color, disabled } = useFormField<SliderProps>(props)
+
+const { controlProps, field: { setValue } } = useCustomControl({ name, disabled })
 
 const defaultSliderValue = computed(() => {
   if (typeof props.defaultValue === 'number') {
@@ -98,23 +101,22 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.slider || {}
 }))
 
 function onChange(value: any) {
+  setValue(value)
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
-  emitFormChange()
 }
 </script>
 
 <template>
   <SliderRoot
-    v-bind="{ ...rootProps, ...ariaAttrs }"
-    :id="id"
+    v-bind="{ ...rootProps, ...controlProps }"
     v-model="sliderValue"
     :name="name"
     :disabled="disabled"
     :class="ui.root({ class: [props.ui?.root, props.class] })"
     :default-value="defaultSliderValue"
-    @update:model-value="emitFormInput()"
+    @update:model-value="setValue"
     @value-commit="onChange"
   >
     <SliderTrack :class="ui.track({ class: props.ui?.track })">

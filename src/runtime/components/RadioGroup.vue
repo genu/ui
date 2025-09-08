@@ -4,6 +4,7 @@ import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/radio-group'
 import type { AcceptableValue } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
+import { useCustomControl } from '@formwerk/core'
 
 type RadioGroup = ComponentConfig<typeof theme, AppConfig, 'radioGroup'>
 
@@ -83,7 +84,7 @@ export interface RadioGroupSlots<T extends RadioGroupItem = RadioGroupItem> {
 </script>
 
 <script setup lang="ts" generic="T extends RadioGroupItem">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { RadioGroupRoot, RadioGroupItem, RadioGroupIndicator, Label, useForwardPropsEmits } from 'reka-ui'
 import { reactivePick } from '@vueuse/core'
 import { useAppConfig } from '#imports'
@@ -104,8 +105,9 @@ const appConfig = useAppConfig() as RadioGroup['AppConfig']
 
 const rootProps = useForwardPropsEmits(reactivePick(props, 'as', 'modelValue', 'defaultValue', 'orientation', 'loop', 'required'), emits)
 
-const { emitFormChange, emitFormInput, color, name, size, id: _id, disabled, ariaAttrs } = useFormField<RadioGroupProps<T>>(props, { bind: false })
-const id = _id.value ?? useId()
+const { color, name, size, disabled } = useFormField<RadioGroupProps<T>>(props)
+
+const { controlId, controlProps, field: { setValue } } = useCustomControl<any>({ name, disabled })
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.radioGroup || {}) })({
   size: size.value,
@@ -120,7 +122,7 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.radioGroup |
 function normalizeItem(item: T): NormalizeItem<T> {
   if (item === null) {
     return {
-      id: `${id}:null`,
+      id: `${controlId}:null`,
       value: undefined,
       label: undefined
     } as NormalizeItem<T>
@@ -128,7 +130,7 @@ function normalizeItem(item: T): NormalizeItem<T> {
 
   if (typeof item === 'string' || typeof item === 'number' || typeof item === 'bigint') {
     return {
-      id: `${id}:${item}`,
+      id: `${controlId}:${item}`,
       value: String(item),
       label: String(item)
     } as NormalizeItem<T>
@@ -143,7 +145,7 @@ function normalizeItem(item: T): NormalizeItem<T> {
     value,
     label,
     description,
-    id: `${id}:${value}`
+    id: `${controlId}:${value}`
   }
 }
 
@@ -159,14 +161,13 @@ function onUpdate(value: any) {
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
-  emitFormChange()
-  emitFormInput()
+  setValue(value)
 }
 </script>
 
 <template>
   <RadioGroupRoot
-    :id="id"
+    :id="controlId"
     v-slot="{ modelValue }"
     v-bind="rootProps"
     :name="name"
@@ -174,7 +175,7 @@ function onUpdate(value: any) {
     :class="ui.root({ class: [props.ui?.root, props.class] })"
     @update:model-value="onUpdate"
   >
-    <fieldset :class="ui.fieldset({ class: props.ui?.fieldset })" v-bind="ariaAttrs">
+    <fieldset :class="ui.fieldset({ class: props.ui?.fieldset })" v-bind="controlProps">
       <legend v-if="legend || !!slots.legend" :class="ui.legend({ class: props.ui?.legend })">
         <slot name="legend">
           {{ legend }}

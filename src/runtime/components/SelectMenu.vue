@@ -6,6 +6,7 @@ import type { UseComponentIconsProps } from '../composables/useComponentIcons'
 import type { AvatarProps, ChipProps, InputProps } from '../types'
 import type { AcceptableValue, ArrayOrNested, GetItemKeys, GetItemValue, GetModelValue, GetModelValueEmits, NestedItem, EmitsToProps } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
+import { useCustomControl } from '@formwerk/core'
 
 type SelectMenu = ComponentConfig<typeof theme, AppConfig, 'selectMenu'>
 
@@ -210,10 +211,13 @@ const contentProps = toRef(() => defu(props.content, { side: 'bottom', sideOffse
 const arrowProps = toRef(() => props.arrow as ComboboxArrowProps)
 const searchInputProps = toRef(() => defu(props.searchInput, { placeholder: t('selectMenu.search'), variant: 'none' }) as InputProps)
 
-const { emitFormBlur, emitFormFocus, emitFormInput, emitFormChange, size: formGroupSize, color, id, name, highlight, disabled, ariaAttrs } = useFormField<InputProps>(props)
+const { size: formGroupSize, color, name, highlight, disabled } = useFormField<InputProps>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(toRef(() => defu(props, { trailingIcon: appConfig.ui.icons.chevronDown })))
-
+const { controlProps, field: { setValue } } = useCustomControl({
+  name,
+  disabled
+})
 const selectSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 
 const [DefineCreateItemTemplate, ReuseCreateItemTemplate] = createReusableTemplate()
@@ -325,8 +329,7 @@ function onUpdate(value: any) {
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
-  emitFormChange()
-  emitFormInput()
+  setValue(value)
 
   if (props.resetSearchTermOnSelect) {
     searchTerm.value = ''
@@ -340,7 +343,6 @@ function onUpdateOpen(value: boolean) {
     const event = new FocusEvent('blur')
 
     emits('blur', event)
-    emitFormBlur()
 
     // Since we use `displayValue` prop inside ComboboxInput we should reset searchTerm manually
     // https://reka-ui.com/docs/components/combobox#api-reference
@@ -354,7 +356,7 @@ function onUpdateOpen(value: boolean) {
   } else {
     const event = new FocusEvent('focus')
     emits('focus', event)
-    emitFormFocus()
+
     clearTimeout(timeoutId)
   }
 }
@@ -400,9 +402,8 @@ defineExpose({
   </DefineCreateItemTemplate>
 
   <ComboboxRoot
-    :id="id"
     v-slot="{ modelValue, open }"
-    v-bind="{ ...rootProps, ...$attrs, ...ariaAttrs }"
+    v-bind="{ ...rootProps, ...$attrs, ...controlProps }"
     ignore-filter
     as-child
     :name="name"

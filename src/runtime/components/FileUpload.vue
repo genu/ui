@@ -4,7 +4,7 @@ import type { UseFileDialogReturn } from '@vueuse/core'
 import theme from '#build/ui/file-upload'
 import type { ButtonProps } from '../types'
 import type { ComponentConfig } from '../types/tv'
-import { useCustomControl, useFormFieldContext } from '@formwerk/core'
+import { useCustomControl } from '@formwerk/core'
 
 type FileUpload = ComponentConfig<typeof theme, AppConfig, 'fileUpload'>
 
@@ -180,11 +180,7 @@ const position = computed(() => {
   return props.position
 })
 
-const fieldContext = useFormFieldContext<FileUploadFiles<M> | undefined>()
-
-const fieldValue = fieldContext?.fieldValue
-
-const { controlProps } = useCustomControl({
+const { controlProps, field: { setValue, fieldValue } } = useCustomControl({
   name,
   disabled: props.disabled,
   modelValue
@@ -234,7 +230,7 @@ function onUpdate(files: File[], reset = false) {
     modelValue.value = files?.[0] as (M extends true ? File[] : File) | null
   }
 
-  fieldContext?.setValue(modelValue.value)
+  setValue(modelValue.value)
 
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value: modelValue.value } })

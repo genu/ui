@@ -5,7 +5,7 @@ import theme from '#build/ui/checkbox-group'
 import type { CheckboxProps } from '../types'
 import type { AcceptableValue } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
-import { useCustomControl, useFormFieldContext } from '@formwerk/core'
+import { useCustomControl } from '@formwerk/core'
 
 type CheckboxGroup = ComponentConfig<typeof theme, AppConfig, 'checkboxGroup'>
 
@@ -101,8 +101,7 @@ const proxySlots = omit(slots, ['legend'])
 
 const { color, name, size, disabled } = useFormField<CheckboxGroupProps<T>>(props)
 
-const fieldContext = useFormFieldContext<CheckboxGroupProps<T>>()
-const { controlProps } = useCustomControl<CheckboxGroupProps<T>>({
+const { controlProps, field: { setValue } } = useCustomControl<CheckboxGroupProps<T>>({
   name,
   disabled: props.disabled
 })
@@ -153,7 +152,7 @@ const normalizedItems = computed(() => {
 })
 
 function onUpdate(value: any) {
-  fieldContext?.setValue(value)
+  setValue(value)
 
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })

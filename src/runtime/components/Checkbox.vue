@@ -3,7 +3,7 @@ import type { CheckboxRootProps } from 'reka-ui'
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/checkbox'
 import type { ComponentConfig } from '../types/tv'
-import { useFormFieldContext, useCustomControl } from '@formwerk/core'
+import { useCustomControl } from '@formwerk/core'
 
 type Checkbox = ComponentConfig<typeof theme, AppConfig, 'checkbox'>
 
@@ -81,14 +81,9 @@ const rootProps = useForwardProps(reactivePick(props, 'required', 'value', 'defa
 
 const { size, name, color, disabled } = useFormField<CheckboxProps>(props)
 
-const fieldContext = useFormFieldContext<boolean>()
-
-const fieldValue = fieldContext?.fieldValue
-
-const { controlProps } = useCustomControl<boolean>({
+const { controlProps, field: { fieldValue, setValue } } = useCustomControl<boolean>({
   name,
-  disabled: props.disabled,
-  modelValue
+  disabled: props.disabled
 })
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.checkbox || {}) })({
@@ -101,11 +96,8 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.checkbox || 
 }))
 
 function onUpdate(value: any) {
-  if (fieldContext) {
-    fieldContext.setValue(value)
-  } else {
-    modelValue.value = value
-  }
+  setValue(value)
+  modelValue.value = value
 
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })

@@ -4,6 +4,7 @@ import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/input-number'
 import type { ButtonProps } from '../types'
 import type { ComponentConfig } from '../types/tv'
+import { useCustomControl } from '@formwerk/core'
 
 type InputNumber = ComponentConfig<typeof theme, AppConfig, 'inputNumber'>
 
@@ -100,9 +101,12 @@ const appConfig = useAppConfig() as InputNumber['AppConfig']
 
 const rootProps = useForwardPropsEmits(reactivePick(props, 'as', 'modelValue', 'defaultValue', 'min', 'max', 'step', 'stepSnapping', 'formatOptions', 'disableWheelChange', 'invertWheelChange', 'readonly'), emits)
 
-const { emitFormBlur, emitFormFocus, emitFormChange, emitFormInput, id, color, size: formGroupSize, name, highlight, disabled, ariaAttrs } = useFormField<InputNumberProps>(props)
+const { name, size, color, size: formGroupSize, highlight, disabled } = useFormField<InputNumberProps>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputNumberProps>(props)
-
+const { controlProps, field: { setValue } } = useCustomControl<number>({
+  name,
+  disabled
+})
 const locale = computed(() => props.locale || codeLocale.value)
 const inputSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 
@@ -125,12 +129,10 @@ function onUpdate(value: number) {
   const event = new Event('change', { target: { value } })
   emits('change', event)
 
-  emitFormChange()
-  emitFormInput()
+  setValue(value)
 }
 
 function onBlur(event: FocusEvent) {
-  emitFormBlur()
   emits('blur', event)
 }
 
@@ -162,13 +164,12 @@ defineExpose({
     @update:model-value="onUpdate"
   >
     <NumberFieldInput
-      v-bind="{ ...$attrs, ...ariaAttrs }"
+      v-bind="{ ...$attrs, ...controlProps }"
       ref="inputRef"
       :placeholder="placeholder"
       :required="required"
       :class="ui.base({ class: props.ui?.base })"
       @blur="onBlur"
-      @focus="emitFormFocus"
     />
 
     <div :class="ui.increment({ class: props.ui?.increment })">

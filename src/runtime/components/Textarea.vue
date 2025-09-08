@@ -4,6 +4,7 @@ import theme from '#build/ui/textarea'
 import type { UseComponentIconsProps } from '../composables/useComponentIcons'
 import type { AvatarProps } from '../types'
 import type { ComponentConfig } from '../types/tv'
+import { useCustomControl } from '@formwerk/core'
 
 type Textarea = ComponentConfig<typeof theme, AppConfig, 'textarea'>
 
@@ -94,8 +95,9 @@ const modelValue = useVModel<TextareaProps<T>, 'modelValue', 'update:modelValue'
 
 const appConfig = useAppConfig() as Textarea['AppConfig']
 
-const { emitFormFocus, emitFormBlur, emitFormInput, emitFormChange, size, color, id, name, highlight, disabled, ariaAttrs } = useFormField<TextareaProps<T>>(props, { deferInputValidation: true })
+const { size, color, name, highlight, disabled } = useFormField<TextareaProps<T>>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(props)
+const { controlProps, field: { setValue } } = useCustomControl<string | null>({ name, disabled })
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.textarea || {}) })({
   color: color.value,
@@ -125,7 +127,7 @@ function updateInput(value: string | null) {
   }
 
   modelValue.value = value as T
-  emitFormInput()
+  setValue(value)
 }
 
 function onInput(event: Event) {
@@ -148,12 +150,10 @@ function onChange(event: Event) {
     (event.target as HTMLInputElement).value = value.trim()
   }
 
-  emitFormChange()
   emits('change', event)
 }
 
 function onBlur(event: FocusEvent) {
-  emitFormBlur()
   emits('blur', event)
 }
 
@@ -207,7 +207,6 @@ defineExpose({
 <template>
   <Primitive :as="as" :class="ui.root({ class: [props.ui?.root, props.class] })">
     <textarea
-      :id="id"
       ref="textareaRef"
       :value="modelValue"
       :name="name"
@@ -216,11 +215,10 @@ defineExpose({
       :class="ui.base({ class: props.ui?.base })"
       :disabled="disabled"
       :required="required"
-      v-bind="{ ...$attrs, ...ariaAttrs }"
+      v-bind="{ ...$attrs, ...controlProps }"
       @input="onInput"
       @blur="onBlur"
       @change="onChange"
-      @focus="emitFormFocus"
     />
 
     <slot />
