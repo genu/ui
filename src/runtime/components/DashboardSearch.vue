@@ -3,7 +3,7 @@
 import type { AppConfig } from '@nuxt/schema'
 import type { UseFuseOptions } from '@vueuse/integrations/useFuse'
 import theme from '#build/ui/dashboard-search'
-import type { ButtonProps, InputProps, ModalProps, CommandPaletteProps, CommandPaletteSlots, CommandPaletteGroup, CommandPaletteItem } from '../types'
+import type { ButtonProps, InputProps, ModalProps, CommandPaletteProps, CommandPaletteSlots, CommandPaletteGroup, CommandPaletteItem, IconProps } from '../types'
 import type { ComponentConfig } from '../types/tv'
 
 type DashboardSearch = ComponentConfig<typeof theme, AppConfig, 'dashboardSearch'>
@@ -14,7 +14,7 @@ export interface DashboardSearchProps<T extends CommandPaletteItem = CommandPale
    * @defaultValue appConfig.ui.icons.search
    * @IconifyIcon
    */
-  icon?: string
+  icon?: IconProps['name']
   /**
    * The placeholder text for the input.
    * @defaultValue t('commandPalette.placeholder')
@@ -32,7 +32,7 @@ export interface DashboardSearchProps<T extends CommandPaletteItem = CommandPale
    * @defaultValue appConfig.ui.icons.loading
    * @IconifyIcon
    */
-  loadingIcon?: string
+  loadingIcon?: IconProps['name']
   /**
    * Display a close button in the input (useful when inside a Modal for example).
    * `{ size: 'md', color: 'neutral', variant: 'ghost' }`{lang="ts-type"}
@@ -45,7 +45,7 @@ export interface DashboardSearchProps<T extends CommandPaletteItem = CommandPale
    * @defaultValue appConfig.ui.icons.close
    * @IconifyIcon
    */
-  closeIcon?: string
+  closeIcon?: IconProps['name']
   /**
    * Keyboard shortcut to open the search (used by [`defineShortcuts`](https://ui.nuxt.com/docs/composables/define-shortcuts))
    * @defaultValue 'meta_k'
@@ -105,7 +105,7 @@ const appConfig = useAppConfig() as DashboardSearch['AppConfig']
 
 const commandPaletteProps = useForwardProps(reactivePick(props, 'icon', 'placeholder', 'autofocus', 'loading', 'loadingIcon', 'close', 'closeIcon'))
 
-const proxySlots = omit(slots, ['content'])
+const getProxySlots = () => omit(slots, ['content'])
 
 const fuse = computed(() => defu({}, props.fuse, {
   fuseOptions: {
@@ -196,7 +196,7 @@ defineExpose({
           @update:model-value="onSelect"
           @update:open="open = $event"
         >
-          <template v-for="(_, name) in proxySlots" #[name]="slotData">
+          <template v-for="(_, name) in getProxySlots()" #[name]="slotData">
             <slot :name="name" v-bind="slotData" />
           </template>
         </UCommandPalette>

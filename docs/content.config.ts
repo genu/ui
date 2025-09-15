@@ -59,7 +59,7 @@ export const collections = {
     }],
     schema: z.object({
       category: z.enum(['layout', 'form', 'element', 'navigation', 'data', 'overlay', 'dashboard', 'page', 'ai', 'color-mode', 'i18n']).optional(),
-      framework: z.string().optional(),
+      framework: z.enum(['nuxt', 'vue']).optional(),
       navigation: z.object({
         title: z.string().optional()
       }),
@@ -92,6 +92,7 @@ export const collections = {
       component_customization: PageSection.extend({
         code: z.string()
       }),
+      templates: PageSection,
       community: PageSection
     })
   }),
@@ -141,6 +142,8 @@ export const collections = {
         steps: z.array(z.object({
           title: z.string(),
           description: z.string(),
+          to: z.string().optional(),
+          target: z.string().optional(),
           image: Image
         }))
       }),
@@ -195,6 +198,7 @@ export const collections = {
         title: z.string(),
         description: z.string(),
         icon: z.string(),
+        framework: z.enum(['nuxt', 'vue']),
         thumbnail: DualModeImage,
         images: z.array(Image).optional(),
         features: z.array(TitleIconFeature).optional(),

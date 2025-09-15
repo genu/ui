@@ -7,22 +7,14 @@
   },
   "baseBranchPatterns": [
     "v2",
+    "v3",
     "v4"
   ],
   "ignoreDeps": [
     "@nuxt/module-builder",
-    "tailwind-variants",
     "typescript"
   ],
   "packageRules": [
-    {
-      "matchBaseBranches": [
-        "v4"
-      ],
-      "labels": [
-        "v4"
-      ]
-    },
     {
       "groupName": "tailwindcss",
       "matchPackageNames": [

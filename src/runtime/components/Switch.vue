@@ -2,8 +2,8 @@
 import type { SwitchRootProps } from 'reka-ui'
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/switch'
+import type { IconProps } from '../types'
 import type { ComponentConfig } from '../types/tv'
-import { useCustomControl } from '@formwerk/core'
 
 type Switch = ComponentConfig<typeof theme, AppConfig, 'switch'>
 
@@ -28,17 +28,17 @@ export interface SwitchProps extends Pick<SwitchRootProps, 'disabled' | 'id' | '
    * @defaultValue appConfig.ui.icons.loading
    * @IconifyIcon
    */
-  loadingIcon?: string
+  loadingIcon?: IconProps['name']
   /**
    * Display an icon when the switch is checked.
    * @IconifyIcon
    */
-  checkedIcon?: string
+  checkedIcon?: IconProps['name']
   /**
    * Display an icon when the switch is unchecked.
    * @IconifyIcon
    */
-  uncheckedIcon?: string
+  uncheckedIcon?: IconProps['name']
   label?: string
   description?: string
   class?: any
@@ -46,7 +46,7 @@ export interface SwitchProps extends Pick<SwitchRootProps, 'disabled' | 'id' | '
 }
 
 export type SwitchEmits = {
-  change: [payload: Event]
+  change: [event: Event]
 }
 
 export interface SwitchSlots {
@@ -56,7 +56,7 @@ export interface SwitchSlots {
 </script>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { Primitive, SwitchRoot, SwitchThumb, useForwardProps, Label } from 'reka-ui'
 import { reactivePick } from '@vueuse/core'
 import { useAppConfig } from '#imports'
@@ -76,13 +76,8 @@ const appConfig = useAppConfig() as Switch['AppConfig']
 
 const rootProps = useForwardProps(reactivePick(props, 'required', 'value', 'defaultValue'))
 
-const { size, name, color, disabled } = useFormField<SwitchProps>(props)
-
-const { controlProps, fieldValue, setValue } = useCustomControl<boolean>({
-  name,
-  disabled: props.disabled,
-  modelValue
-})
+const { id: _id, emitFormChange, emitFormInput, size, color, name, disabled, ariaAttrs } = useFormField<SwitchProps>(props)
+const id = _id.value ?? useId()
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.switch || {}) })({
   size: size.value,
@@ -93,12 +88,11 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.switch || {}
 }))
 
 function onUpdate(value: any) {
-  setValue(value)
-  modelValue.value = value
-
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
+  emitFormChange()
+  emitFormInput()
 }
 </script>
 
@@ -106,9 +100,11 @@ function onUpdate(value: any) {
   <Primitive :as="as" :class="ui.root({ class: [props.ui?.root, props.class] })">
     <div :class="ui.container({ class: props.ui?.container })">
       <SwitchRoot
-        v-bind="{ ...rootProps, ...$attrs, ...controlProps }"
+        :id="id"
+        v-bind="{ ...rootProps, ...$attrs, ...ariaAttrs }"
+        v-model="modelValue"
         :name="name"
-        :model-value="fieldValue"
+        :disabled="disabled || loading"
         :class="ui.base({ class: props.ui?.base })"
         @update:model-value="onUpdate"
       >
@@ -122,7 +118,7 @@ function onUpdate(value: any) {
       </SwitchRoot>
     </div>
     <div v-if="(label || !!slots.label) || (description || !!slots.description)" :class="ui.wrapper({ class: props.ui?.wrapper })">
-      <Label v-if="label || !!slots.label" :for="controlProps.id" :class="ui.label({ class: props.ui?.label })">
+      <Label v-if="label || !!slots.label" :for="id" :class="ui.label({ class: props.ui?.label })">
         <slot name="label" :label="label">
           {{ label }}
         </slot>

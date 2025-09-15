@@ -4,7 +4,6 @@ import type { PinInputRootEmits, PinInputRootProps } from 'reka-ui'
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/pin-input'
 import type { ComponentConfig } from '../types/tv'
-import { useCustomControl } from '@formwerk/core'
 
 type PinInput = ComponentConfig<typeof theme, AppConfig, 'pinInput'>
 
@@ -42,8 +41,8 @@ export interface PinInputProps<T extends PinInputType = 'text'> extends Pick<Pin
 }
 
 export type PinInputEmits<T extends PinInputType = 'text'> = PinInputRootEmits<T> & {
-  change: [payload: Event]
-  blur: [payload: Event]
+  change: [event: Event]
+  blur: [event: Event]
 }
 
 </script>
@@ -69,12 +68,7 @@ const appConfig = useAppConfig() as PinInput['AppConfig']
 
 const rootProps = useForwardPropsEmits(reactivePick(props, 'disabled', 'id', 'mask', 'name', 'otp', 'required', 'type'), emits)
 
-const { size, name, color, disabled, highlight } = useFormField<PinInputProps>(props)
-
-const { controlProps, field: { setValue } } = useCustomControl<string[] | number[]>({
-  name,
-  disabled: props.disabled
-})
+const { emitFormInput, emitFormFocus, emitFormChange, emitFormBlur, size, color, id, name, highlight, disabled, ariaAttrs } = useFormField<PinInputProps>(props)
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.pinInput || {}) })({
   color: color.value,
@@ -87,16 +81,16 @@ const inputsRef = ref<ComponentPublicInstance[]>([])
 
 const completed = ref(false)
 function onComplete(value: string[] | number[]) {
-  setValue(value)
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
+  emitFormChange()
 }
 
 function onBlur(event: FocusEvent) {
   if (!event.relatedTarget || completed.value) {
     emits('blur', event)
-    // emitFormBlur()
+    emitFormBlur()
   }
 }
 
@@ -119,14 +113,14 @@ defineExpose({
 
 <template>
   <PinInputRoot
-    v-bind="{ ...rootProps, ...controlProps }"
+    v-bind="{ ...rootProps, ...ariaAttrs }"
     :id="id"
     :name="name"
     :placeholder="placeholder"
     :model-value="(modelValue as PinInputValue<T>)"
     :default-value="(defaultValue as PinInputValue<T>[])"
     :class="ui.root({ class: [props.ui?.root, props.class] })"
-    @update:model-value="setValue"
+    @update:model-value="emitFormInput()"
     @complete="onComplete"
   >
     <PinInputInput
@@ -137,6 +131,7 @@ defineExpose({
       :class="ui.base({ class: props.ui?.base })"
       :disabled="disabled"
       @blur="onBlur"
+      @focus="emitFormFocus"
     />
   </PinInputRoot>
 </template>

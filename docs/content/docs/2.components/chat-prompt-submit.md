@@ -70,12 +70,12 @@ props:
 
 ::framework-only
 #nuxt
-:::tip{to="/docs/getting-started/icons/nuxt#theme"}
+:::tip{to="/docs/getting-started/integrations/icons/nuxt#theme"}
 You can customize this icon globally in your `app.config.ts` under `ui.icons.arrowUp` key.
 :::
 
 #vue
-:::tip{to="/docs/getting-started/icons/vue#theme"}
+:::tip{to="/docs/getting-started/integrations/icons/vue#theme"}
 You can customize this icon globally in your `vite.config.ts` under `ui.icons.arrowUp` key.
 :::
 ::
@@ -121,12 +121,12 @@ props:
 
 ::framework-only
 #nuxt
-:::tip{to="/docs/getting-started/icons/nuxt#theme"}
+:::tip{to="/docs/getting-started/integrations/icons/nuxt#theme"}
 You can customize this icon globally in your `app.config.ts` under `ui.icons.stop` key.
 :::
 
 #vue
-:::tip{to="/docs/getting-started/icons/vue#theme"}
+:::tip{to="/docs/getting-started/integrations/icons/vue#theme"}
 You can customize this icon globally in your `vite.config.ts` under `ui.icons.stop` key.
 :::
 ::
@@ -172,12 +172,12 @@ props:
 
 ::framework-only
 #nuxt
-:::tip{to="/docs/getting-started/icons/nuxt#theme"}
+:::tip{to="/docs/getting-started/integrations/icons/nuxt#theme"}
 You can customize this icon globally in your `app.config.ts` under `ui.icons.stop` key.
 :::
 
 #vue
-:::tip{to="/docs/getting-started/icons/vue#theme"}
+:::tip{to="/docs/getting-started/integrations/icons/vue#theme"}
 You can customize this icon globally in your `vite.config.ts` under `ui.icons.stop` key.
 :::
 ::
@@ -223,12 +223,12 @@ props:
 
 ::framework-only
 #nuxt
-:::tip{to="/docs/getting-started/icons/nuxt#theme"}
+:::tip{to="/docs/getting-started/integrations/icons/nuxt#theme"}
 You can customize this icon globally in your `app.config.ts` under `ui.icons.reload` key.
 :::
 
 #vue
-:::tip{to="/docs/getting-started/icons/vue#theme"}
+:::tip{to="/docs/getting-started/integrations/icons/vue#theme"}
 You can customize this icon globally in your `vite.config.ts` under `ui.icons.reload` key.
 :::
 ::
@@ -239,7 +239,7 @@ You can customize this icon globally in your `vite.config.ts` under `ui.icons.re
 These chat components are designed to be used with the **AI SDK v5** from **Vercel AI SDK**.
 ::
 
-::callout{icon="i-simple-icons-github" to="https://github.com/nuxt-ui-pro/chat" target="_blank"}
+::callout{icon="i-simple-icons-github" to="https://github.com/nuxt-ui-templates/chat" target="_blank"}
 Check out the source code of our **AI Chat template** on GitHub for a real-life example.
 ::
 

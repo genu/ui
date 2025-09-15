@@ -15,7 +15,7 @@ links:
 
 The ColorModeSelect component extends the [SelectMenu](/docs/components/select-menu) component, so you can pass any property such as `color`, `variant`, `size`, etc.
 
-::component-code{prefix="color-mode"}
+:component-code{prefix="color-mode"}
 
 ## Examples
 
@@ -77,4 +77,4 @@ export default defineConfig({
 
 ## Changelog
 
-:component-changelog
+:component-changelog{prefix="color-mode"}

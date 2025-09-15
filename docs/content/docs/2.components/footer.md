@@ -17,6 +17,7 @@ Use the `left`, `default` and `right` slots to customize the footer.
 ::component-example
 ---
 prettier: true
+collapse: true
 name: 'footer-example'
 class: '!p-0'
 props:
@@ -26,6 +27,10 @@ props:
 
 ::note
 In this example, we use the [NavigationMenu](/docs/components/navigation-menu) component to render the footer links in the center.
+::
+
+::tip{to="/docs/components/footer-columns"}
+You can use the [FooterColumns](/docs/components/footer-columns) component to display a list of links inside the `top` slot.
 ::
 
 ## Examples
@@ -40,7 +45,7 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 
 const items: NavigationMenuItem[] = [{
   label: 'Figma Kit',
-  to: 'https://www.figma.com/community/file/1288455405058138934',
+  to: 'https://go.nuxt.com/figma-ui',
   target: '_blank'
 }, {
   label: 'Playground',
@@ -79,7 +84,7 @@ const items: NavigationMenuItem[] = [{
           icon="i-simple-icons-discord"
           color="neutral"
           variant="ghost"
-          to="https://chat.nuxt.dev"
+          to="https://go.nuxt.com/discord"
           target="_blank"
           aria-label="Discord"
         />
@@ -87,7 +92,7 @@ const items: NavigationMenuItem[] = [{
           icon="i-simple-icons-x"
           color="neutral"
           variant="ghost"
-          to="https://x.com/nuxt_js"
+          to="https://go.nuxt.com/x"
           target="_blank"
           aria-label="X"
         />

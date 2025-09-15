@@ -3,8 +3,8 @@ import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/textarea'
 import type { UseComponentIconsProps } from '../composables/useComponentIcons'
 import type { AvatarProps } from '../types'
+import type { ModelModifiers } from '../types/input'
 import type { ComponentConfig } from '../types/tv'
-import { useCustomControl } from '@formwerk/core'
 
 type Textarea = ComponentConfig<typeof theme, AppConfig, 'textarea'>
 
@@ -44,19 +44,13 @@ export interface TextareaProps<T extends TextareaValue = TextareaValue> extends 
   highlight?: boolean
   modelValue?: T
   defaultValue?: T
-  modelModifiers?: {
-    string?: boolean
-    number?: boolean
-    trim?: boolean
-    lazy?: boolean
-    nullify?: boolean
-  }
+  modelModifiers?: ModelModifiers
   class?: any
   ui?: Textarea['slots']
 }
 
 export interface TextareaEmits<T extends TextareaValue = TextareaValue> {
-  'update:modelValue': [payload: T]
+  'update:modelValue': [value: T]
   'blur': [event: FocusEvent]
   'change': [event: Event]
 }
@@ -95,9 +89,8 @@ const modelValue = useVModel<TextareaProps<T>, 'modelValue', 'update:modelValue'
 
 const appConfig = useAppConfig() as Textarea['AppConfig']
 
-const { size, color, name, highlight, disabled } = useFormField<TextareaProps<T>>(props)
+const { emitFormFocus, emitFormBlur, emitFormInput, emitFormChange, size, color, id, name, highlight, disabled, ariaAttrs } = useFormField<TextareaProps<T>>(props, { deferInputValidation: true })
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(props)
-const { controlProps, field: { setValue } } = useCustomControl<string | null>({ name, disabled })
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.textarea || {}) })({
   color: color.value,
@@ -113,7 +106,7 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.textarea || 
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
 // Custom function to handle the v-model properties
-function updateInput(value: string | null) {
+function updateInput(value: string | null | undefined) {
   if (props.modelModifiers?.trim) {
     value = value?.trim() ?? null
   }
@@ -122,12 +115,16 @@ function updateInput(value: string | null) {
     value = looseToNumber(value)
   }
 
-  if (props.modelModifiers?.nullify) {
+  if (props.modelModifiers?.nullable) {
     value ||= null
   }
 
+  if (props.modelModifiers?.optional) {
+    value ||= undefined
+  }
+
   modelValue.value = value as T
-  setValue(value)
+  emitFormInput()
 }
 
 function onInput(event: Event) {
@@ -150,10 +147,12 @@ function onChange(event: Event) {
     (event.target as HTMLInputElement).value = value.trim()
   }
 
+  emitFormChange()
   emits('change', event)
 }
 
 function onBlur(event: FocusEvent) {
+  emitFormBlur()
   emits('blur', event)
 }
 
@@ -207,6 +206,7 @@ defineExpose({
 <template>
   <Primitive :as="as" :class="ui.root({ class: [props.ui?.root, props.class] })">
     <textarea
+      :id="id"
       ref="textareaRef"
       :value="modelValue"
       :name="name"
@@ -215,10 +215,11 @@ defineExpose({
       :class="ui.base({ class: props.ui?.base })"
       :disabled="disabled"
       :required="required"
-      v-bind="{ ...$attrs, ...controlProps }"
+      v-bind="{ ...$attrs, ...ariaAttrs }"
       @input="onInput"
       @blur="onBlur"
       @change="onChange"
+      @focus="emitFormFocus"
     />
 
     <slot />

@@ -2,9 +2,9 @@
 import type { NumberFieldRootProps } from 'reka-ui'
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/input-number'
-import type { ButtonProps } from '../types'
+import type { ButtonProps, IconProps } from '../types'
+import type { ModelModifiers } from '../types/input'
 import type { ComponentConfig } from '../types/tv'
-import { useCustomControl } from '@formwerk/core'
 
 type InputNumber = ComponentConfig<typeof theme, AppConfig, 'inputNumber'>
 
@@ -36,7 +36,7 @@ export interface InputNumberProps extends Pick<NumberFieldRootProps, 'modelValue
    * @defaultValue appConfig.ui.icons.plus
    * @IconifyIcon
    */
-  incrementIcon?: string
+  incrementIcon?: IconProps['name']
   /** Disable the increment button. */
   incrementDisabled?: boolean
   /**
@@ -49,11 +49,12 @@ export interface InputNumberProps extends Pick<NumberFieldRootProps, 'modelValue
    * @defaultValue appConfig.ui.icons.minus
    * @IconifyIcon
    */
-  decrementIcon?: string
+  decrementIcon?: IconProps['name']
   /** Disable the decrement button. */
   decrementDisabled?: boolean
   autofocus?: boolean
   autofocusDelay?: number
+  modelModifiers?: Pick<ModelModifiers, 'optional'>
   /**
    * The locale to use for formatting and parsing numbers.
    * @defaultValue UApp.locale.code
@@ -64,9 +65,9 @@ export interface InputNumberProps extends Pick<NumberFieldRootProps, 'modelValue
 }
 
 export interface InputNumberEmits {
-  'update:modelValue': [payload: number]
+  'update:modelValue': [value: number]
   'blur': [event: FocusEvent]
-  'change': [payload: Event]
+  'change': [event: Event]
 }
 
 export interface InputNumberSlots {
@@ -78,7 +79,7 @@ export interface InputNumberSlots {
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { NumberFieldRoot, NumberFieldInput, NumberFieldDecrement, NumberFieldIncrement, useForwardPropsEmits } from 'reka-ui'
-import { reactivePick } from '@vueuse/core'
+import { reactivePick, useVModel } from '@vueuse/core'
 import { useAppConfig } from '#imports'
 import { useFieldGroup } from '../composables/useFieldGroup'
 import { useFormField } from '../composables/useFormField'
@@ -96,17 +97,16 @@ const props = withDefaults(defineProps<InputNumberProps>(), {
 const emits = defineEmits<InputNumberEmits>()
 defineSlots<InputNumberSlots>()
 
+const modelValue = useVModel<InputNumberProps, 'modelValue', 'update:modelValue'>(props, 'modelValue', emits, { defaultValue: props.defaultValue })
+
 const { t, code: codeLocale } = useLocale()
 const appConfig = useAppConfig() as InputNumber['AppConfig']
 
-const rootProps = useForwardPropsEmits(reactivePick(props, 'as', 'modelValue', 'defaultValue', 'min', 'max', 'step', 'stepSnapping', 'formatOptions', 'disableWheelChange', 'invertWheelChange', 'readonly'), emits)
+const rootProps = useForwardPropsEmits(reactivePick(props, 'as', 'defaultValue', 'min', 'max', 'step', 'stepSnapping', 'formatOptions', 'disableWheelChange', 'invertWheelChange', 'readonly'), emits)
 
-const { name, size, color, size: formGroupSize, highlight, disabled } = useFormField<InputNumberProps>(props)
+const { emitFormBlur, emitFormFocus, emitFormChange, emitFormInput, id, color, size: formGroupSize, name, highlight, disabled, ariaAttrs } = useFormField<InputNumberProps>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputNumberProps>(props)
-const { controlProps, field: { setValue } } = useCustomControl<number>({
-  name,
-  disabled
-})
+
 const locale = computed(() => props.locale || codeLocale.value)
 const inputSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 
@@ -124,15 +124,21 @@ const decrementIcon = computed(() => props.decrementIcon || (props.orientation =
 
 const inputRef = ref<InstanceType<typeof NumberFieldInput> | null>(null)
 
-function onUpdate(value: number) {
+function onUpdate(value: number | undefined) {
+  if (props.modelModifiers?.optional) {
+    value = value ?? undefined
+  }
+
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
 
-  setValue(value)
+  emitFormChange()
+  emitFormInput()
 }
 
 function onBlur(event: FocusEvent) {
+  emitFormBlur()
   emits('blur', event)
 }
 
@@ -157,6 +163,7 @@ defineExpose({
   <NumberFieldRoot
     v-bind="rootProps"
     :id="id"
+    :model-value="modelValue"
     :class="ui.root({ class: [props.ui?.root, props.class] })"
     :name="name"
     :disabled="disabled"
@@ -164,12 +171,13 @@ defineExpose({
     @update:model-value="onUpdate"
   >
     <NumberFieldInput
-      v-bind="{ ...$attrs, ...controlProps }"
+      v-bind="{ ...$attrs, ...ariaAttrs }"
       ref="inputRef"
       :placeholder="placeholder"
       :required="required"
       :class="ui.base({ class: props.ui?.base })"
       @blur="onBlur"
+      @focus="emitFormFocus"
     />
 
     <div :class="ui.increment({ class: props.ui?.increment })">

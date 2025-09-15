@@ -4,7 +4,7 @@ import type { ComboboxRootProps, ComboboxRootEmits, ComboboxContentProps, Combob
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/input-menu'
 import type { UseComponentIconsProps } from '../composables/useComponentIcons'
-import type { AvatarProps, ChipProps, InputProps } from '../types'
+import type { AvatarProps, ChipProps, IconProps, InputProps } from '../types'
 import type { AcceptableValue, ArrayOrNested, GetItemKeys, GetItemValue, GetModelValue, GetModelValueEmits, NestedItem, EmitsToProps } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
 
@@ -15,7 +15,7 @@ interface _InputMenuItem {
   /**
    * @IconifyIcon
    */
-  icon?: string
+  icon?: IconProps['name']
   avatar?: AvatarProps
   chip?: ChipProps
   /**
@@ -61,20 +61,20 @@ export interface InputMenuProps<T extends ArrayOrNested<InputMenuItem> = ArrayOr
    * @defaultValue appConfig.ui.icons.chevronDown
    * @IconifyIcon
    */
-  trailingIcon?: string
+  trailingIcon?: IconProps['name']
   /**
    * The icon displayed when an item is selected.
    * @defaultValue appConfig.ui.icons.check
    * @IconifyIcon
    */
-  selectedIcon?: string
+  selectedIcon?: IconProps['name']
   /**
    * The icon displayed to delete a tag.
    * Works only when `multiple` is `true`.
    * @defaultValue appConfig.ui.icons.close
    * @IconifyIcon
    */
-  deleteIcon?: string
+  deleteIcon?: IconProps['name']
   /**
    * The content of the menu.
    * @defaultValue { side: 'bottom', sideOffset: 8, collisionPadding: 8, position: 'popper' }
@@ -99,7 +99,7 @@ export interface InputMenuProps<T extends ArrayOrNested<InputMenuItem> = ArrayOr
    * When `items` is an array of objects, select the field to use as the label.
    * @defaultValue 'label'
    */
-  labelKey?: keyof NestedItem<T>
+  labelKey?: GetItemKeys<T>
   items?: T
   /** The value of the InputMenu when initially rendered. Use when you do not need to control the state of the InputMenu. */
   defaultValue?: GetModelValue<T, VK, M>
@@ -129,9 +129,9 @@ export interface InputMenuProps<T extends ArrayOrNested<InputMenuItem> = ArrayOr
 }
 
 export type InputMenuEmits<A extends ArrayOrNested<InputMenuItem>, VK extends GetItemKeys<A> | undefined, M extends boolean> = Pick<ComboboxRootEmits, 'update:open'> & {
-  'change': [payload: Event]
-  'blur': [payload: FocusEvent]
-  'focus': [payload: FocusEvent]
+  'change': [event: Event]
+  'blur': [event: FocusEvent]
+  'focus': [event: FocusEvent]
   'create': [item: string]
   /** Event handler when highlighted element changes. */
   'highlight': [payload: {
@@ -196,7 +196,7 @@ const props = withDefaults(defineProps<InputMenuProps<T, VK, M>>(), {
   type: 'text',
   autofocusDelay: 0,
   portal: true,
-  labelKey: 'label' as never,
+  labelKey: 'label',
   resetSearchTermOnBlur: true,
   resetSearchTermOnSelect: true
 })
@@ -214,7 +214,7 @@ const portalProps = usePortal(toRef(() => props.portal))
 const contentProps = toRef(() => defu(props.content, { side: 'bottom', sideOffset: 8, collisionPadding: 8, position: 'popper' }) as ComboboxContentProps)
 const arrowProps = toRef(() => props.arrow as ComboboxArrowProps)
 
-const { size: formGroupSize, name } = useFormField<InputProps>(props)
+const { emitFormBlur, emitFormFocus, emitFormChange, emitFormInput, size: formGroupSize, color, id, name, highlight, disabled, ariaAttrs } = useFormField<InputProps>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(toRef(() => defu(props, { trailingIcon: appConfig.ui.icons.chevronDown })))
 
@@ -223,19 +223,22 @@ const inputSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 const [DefineCreateItemTemplate, ReuseCreateItemTemplate] = createReusableTemplate()
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.inputMenu || {}) })({
-  // color: color.value,
+  color: color.value,
   variant: props.variant,
   size: inputSize?.value,
   loading: props.loading,
-  // highlight: highlight.value,
+  highlight: highlight.value,
   leading: isLeading.value || !!props.avatar || !!slots.leading,
   trailing: isTrailing.value || !!slots.trailing,
   multiple: props.multiple,
   fieldGroup: orientation.value
 }))
 
+// eslint-disable-next-line vue/no-dupe-keys
+const items = computed(() => groups.value.flatMap(group => group) as T[])
+
 function displayValue(value: GetItemValue<T, VK>): string {
-  return getDisplayValue(items.value, value, {
+  return getDisplayValue<T[], GetItemValue<T, VK>>(items.value, value, {
     labelKey: props.labelKey,
     valueKey: props.valueKey
   }) ?? ''
@@ -248,8 +251,6 @@ const groups = computed<InputMenuItem[][]>(() =>
       : [props.items]
     : []
 )
-// eslint-disable-next-line vue/no-dupe-keys
-const items = computed(() => groups.value.flatMap(group => group) as T[])
 
 const filteredGroups = computed(() => {
   if (props.ignoreFilter || !searchTerm.value) {
@@ -321,8 +322,8 @@ function onUpdate(value: any) {
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
-  // emitFormChange()
-  // emitFormInput()
+  emitFormChange()
+  emitFormInput()
 
   if (props.resetSearchTermOnSelect) {
     searchTerm.value = ''
@@ -331,12 +332,12 @@ function onUpdate(value: any) {
 
 function onBlur(event: FocusEvent) {
   emits('blur', event)
-  // emitFormBlur()
+  emitFormBlur()
 }
 
 function onFocus(event: FocusEvent) {
   emits('focus', event)
-  // emitFormFocus()
+  emitFormFocus()
 }
 
 function onUpdateOpen(value: boolean) {
@@ -346,7 +347,7 @@ function onUpdateOpen(value: boolean) {
     const event = new FocusEvent('blur')
 
     emits('blur', event)
-    // emitFormBlur()
+    emitFormBlur()
 
     // Since we use `displayValue` prop inside ComboboxInput we should reset searchTerm manually
     // https://reka-ui.com/docs/components/combobox#api-reference
@@ -360,7 +361,7 @@ function onUpdateOpen(value: boolean) {
   } else {
     const event = new FocusEvent('focus')
     emits('focus', event)
-    // emitFormFocus()
+    emitFormFocus()
     clearTimeout(timeoutId)
   }
 }
@@ -458,7 +459,7 @@ defineExpose({
           <TagsInputInput
             :id="id"
             ref="inputRef"
-            v-bind="{ ...$attrs }"
+            v-bind="{ ...$attrs, ...ariaAttrs }"
             :placeholder="placeholder"
             :class="ui.tagsInput({ class: props.ui?.tagsInput })"
             @keydown.enter.prevent
@@ -471,7 +472,7 @@ defineExpose({
         :id="id"
         ref="inputRef"
         :display-value="displayValue"
-        v-bind="{ ...$attrs }"
+        v-bind="{ ...$attrs, ...ariaAttrs }"
         :type="type"
         :placeholder="placeholder"
         :required="required"
@@ -495,7 +496,7 @@ defineExpose({
     </ComboboxAnchor>
 
     <ComboboxPortal v-bind="portalProps">
-      <ComboboxContent :class="ui.content({ class: props.ui?.content })" v-bind="contentProps">
+      <ComboboxContent :class="ui.content({ class: props.ui?.content })" v-bind="contentProps" @focus-outside.prevent>
         <slot name="content-top" />
 
         <ComboboxEmpty :class="ui.empty({ class: props.ui?.empty })">

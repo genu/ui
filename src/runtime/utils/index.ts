@@ -1,5 +1,5 @@
 import { isEqual } from 'ohash/utils'
-import type { GetItemKeys, NestedItem } from '../types/utils'
+import type { GetItemKeys } from '../types/utils'
 
 export function pick<Data extends object, Keys extends keyof Data>(data: Data, keys: Keys[]): Pick<Data, Keys> {
   const result = {} as Pick<Data, Keys>
@@ -83,19 +83,52 @@ export function compare<T>(value?: T, currentValue?: T, comparator?: string | ((
   return isEqual(value, currentValue)
 }
 
-export function getDisplayValue<T, V>(
-  items: T[],
+export function isEmpty(value: unknown): boolean {
+  if (value == null) {
+    return true
+  }
+
+  if (typeof value === 'boolean' || typeof value === 'number') {
+    return false
+  }
+
+  if (typeof value === 'string') {
+    return value.trim().length === 0
+  }
+
+  if (Array.isArray(value)) {
+    return value.length === 0
+  }
+
+  if (value instanceof Map || value instanceof Set) {
+    return value.size === 0
+  }
+
+  if (value instanceof Date || value instanceof RegExp || typeof value === 'function') {
+    return false
+  }
+
+  if (typeof value === 'object') {
+    for (const _ in value as object) {
+      if (Object.prototype.hasOwnProperty.call(value, _)) {
+        return false
+      }
+    }
+    return true
+  }
+
+  return false
+}
+
+export function getDisplayValue<T extends Array<any>, V>(
+  items: T,
   value: V | undefined | null,
   options: {
     valueKey?: GetItemKeys<T>
-    labelKey?: keyof NestedItem<T>
+    labelKey?: GetItemKeys<T>
   } = {}
 ): string | undefined {
   const { valueKey, labelKey } = options
-
-  if (value === null || value === undefined) {
-    return undefined
-  }
 
   const foundItem = items.find((item) => {
     const itemValue = (typeof item === 'object' && item !== null && valueKey)
@@ -103,6 +136,14 @@ export function getDisplayValue<T, V>(
       : item
     return compare(itemValue, value)
   })
+
+  if (isEmpty(value) && foundItem) {
+    return labelKey ? get(foundItem as Record<string, any>, labelKey as string) : undefined
+  }
+
+  if (isEmpty(value)) {
+    return undefined
+  }
 
   const source = foundItem ?? value
 

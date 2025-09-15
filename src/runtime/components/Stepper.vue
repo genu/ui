@@ -3,6 +3,7 @@
 import type { StepperRootProps, StepperRootEmits } from 'reka-ui'
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/stepper'
+import type { IconProps } from '../types'
 import type { DynamicSlots } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
 
@@ -16,7 +17,7 @@ export interface StepperItem {
   /**
    * @IconifyIcon
    */
-  icon?: string
+  icon?: IconProps['name']
   content?: string
   disabled?: boolean
   class?: any
@@ -54,8 +55,8 @@ export interface StepperProps<T extends StepperItem = StepperItem> extends Pick<
 }
 
 export type StepperEmits<T extends StepperItem = StepperItem> = Omit<StepperRootEmits, 'update:modelValue'> & {
-  next: [payload: T]
-  prev: [payload: T]
+  next: [value: T]
+  prev: [value: T]
 }
 
 type SlotProps<T extends StepperItem> = (props: { item: T }) => any

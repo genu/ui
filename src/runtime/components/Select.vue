@@ -3,7 +3,7 @@ import type { SelectRootProps, SelectRootEmits, SelectContentProps, SelectConten
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/select'
 import type { UseComponentIconsProps } from '../composables/useComponentIcons'
-import type { AvatarProps, ChipProps, InputProps } from '../types'
+import type { AvatarProps, ChipProps, IconProps, InputProps } from '../types'
 import type { AcceptableValue, ArrayOrNested, GetItemKeys, GetItemValue, GetModelValue, GetModelValueEmits, NestedItem, EmitsToProps } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
 
@@ -14,7 +14,7 @@ interface SelectItemBase {
   /**
    * @IconifyIcon
    */
-  icon?: string
+  icon?: IconProps['name']
   avatar?: AvatarProps
   chip?: ChipProps
   /**
@@ -52,13 +52,13 @@ export interface SelectProps<T extends ArrayOrNested<SelectItem> = ArrayOrNested
    * @defaultValue appConfig.ui.icons.chevronDown
    * @IconifyIcon
    */
-  trailingIcon?: string
+  trailingIcon?: IconProps['name']
   /**
    * The icon displayed when an item is selected.
    * @defaultValue appConfig.ui.icons.check
    * @IconifyIcon
    */
-  selectedIcon?: string
+  selectedIcon?: IconProps['name']
   /**
    * The content of the menu.
    * @defaultValue { side: 'bottom', sideOffset: 8, collisionPadding: 8, position: 'popper' }
@@ -83,7 +83,7 @@ export interface SelectProps<T extends ArrayOrNested<SelectItem> = ArrayOrNested
    * When `items` is an array of objects, select the field to use as the label.
    * @defaultValue 'label'
    */
-  labelKey?: keyof NestedItem<T>
+  labelKey?: GetItemKeys<T>
   items?: T
   /** The value of the Select when initially rendered. Use when you do not need to control the state of the Select. */
   defaultValue?: GetModelValue<T, VK, M>
@@ -100,9 +100,9 @@ export interface SelectProps<T extends ArrayOrNested<SelectItem> = ArrayOrNested
 }
 
 export type SelectEmits<A extends ArrayOrNested<SelectItem>, VK extends GetItemKeys<A> | undefined, M extends boolean> = Omit<SelectRootEmits, 'update:modelValue'> & {
-  change: [payload: Event]
-  blur: [payload: FocusEvent]
-  focus: [payload: FocusEvent]
+  change: [event: Event]
+  blur: [event: FocusEvent]
+  focus: [event: FocusEvent]
 } & GetModelValueEmits<A, VK, M>
 
 type SlotProps<T extends SelectItem> = (props: { item: T, index: number }) => any
@@ -156,7 +156,7 @@ defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<SelectProps<T, VK, M>>(), {
   valueKey: 'value' as never,
-  labelKey: 'label' as never,
+  labelKey: 'label',
   portal: true,
   autofocusDelay: 0
 })
@@ -170,18 +170,18 @@ const portalProps = usePortal(toRef(() => props.portal))
 const contentProps = toRef(() => defu(props.content, { side: 'bottom', sideOffset: 8, collisionPadding: 8, position: 'popper' }) as SelectContentProps)
 const arrowProps = toRef(() => props.arrow as SelectArrowProps)
 
-const { size: formGroupSize, name } = useFormField<InputProps>(props)
+const { emitFormChange, emitFormInput, emitFormBlur, emitFormFocus, size: formGroupSize, color, id, name, highlight, disabled, ariaAttrs } = useFormField<InputProps>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(toRef(() => defu(props, { trailingIcon: appConfig.ui.icons.chevronDown })))
 
 const selectSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.select || {}) })({
-  // color: color.value,
+  color: color.value,
   variant: props.variant,
   size: selectSize?.value,
   loading: props.loading,
-  // highlight: highlight.value,
+  highlight: highlight.value,
   leading: isLeading.value || !!props.avatar || !!slots.leading,
   trailing: isTrailing.value || !!slots.trailing,
   fieldGroup: orientation.value
@@ -200,7 +200,7 @@ const items = computed(() => groups.value.flatMap(group => group) as T[])
 function displayValue(value: GetItemValue<T, VK> | GetItemValue<T, VK>[]): string | undefined {
   if (props.multiple && Array.isArray(value)) {
     const displayedValues = value
-      .map(item => getDisplayValue(items.value, item, {
+      .map(item => getDisplayValue<T[], GetItemValue<T, VK>>(items.value, item, {
         labelKey: props.labelKey,
         valueKey: props.valueKey
       }))
@@ -209,7 +209,7 @@ function displayValue(value: GetItemValue<T, VK> | GetItemValue<T, VK>[]): strin
     return displayedValues.length > 0 ? displayedValues.join(', ') : undefined
   }
 
-  return getDisplayValue(items.value, value, {
+  return getDisplayValue<T[], GetItemValue<T, VK>>(items.value, value as GetItemValue<T, VK>, {
     labelKey: props.labelKey,
     valueKey: props.valueKey
   })
@@ -236,18 +236,18 @@ function onUpdate(value: any) {
   const event = new Event('change', { target: { value } })
   emits('change', event)
 
-  // emitFormChange()
-  // emitFormInput()
+  emitFormChange()
+  emitFormInput()
 }
 function onUpdateOpen(value: boolean) {
   if (!value) {
     const event = new FocusEvent('blur')
     emits('blur', event)
-    // emitFormBlur()
+    emitFormBlur()
   } else {
     const event = new FocusEvent('focus')
     emits('focus', event)
-    // emitFormFocus()
+    emitFormFocus()
   }
 }
 
@@ -277,7 +277,7 @@ defineExpose({
       :id="id"
       ref="triggerRef"
       :class="ui.base({ class: [props.ui?.base, props.class] })"
-      v-bind="{ ...$attrs }"
+      v-bind="{ ...$attrs, ...ariaAttrs }"
     >
       <span v-if="isLeading || !!avatar || !!slots.leading" :class="ui.leading({ class: props.ui?.leading })">
         <slot name="leading" :model-value="(modelValue as GetModelValue<T, VK, M>)" :open="open" :ui="ui">

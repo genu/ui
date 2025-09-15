@@ -4,7 +4,6 @@ import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/slider'
 import type { TooltipProps } from '../types'
 import type { ComponentConfig } from '../types/tv'
-import { useCustomControl } from '@formwerk/core'
 
 type Slider = ComponentConfig<typeof theme, AppConfig, 'slider'>
 
@@ -39,9 +38,8 @@ export interface SliderProps extends Pick<SliderRootProps, 'name' | 'disabled' |
   ui?: Slider['slots']
 }
 
-export interface SliderEmits<T extends number | number[] = number | number[]> {
-  'update:modelValue': [payload: T]
-  'change': [payload: Event]
+export interface SliderEmits {
+  change: [event: Event]
 }
 </script>
 
@@ -60,7 +58,7 @@ const props = withDefaults(defineProps<SliderProps>(), {
   step: 1,
   orientation: 'horizontal'
 })
-const emits = defineEmits<SliderEmits<T>>()
+const emits = defineEmits<SliderEmits>()
 
 const modelValue = defineModel<T>()
 
@@ -68,9 +66,7 @@ const appConfig = useAppConfig() as Slider['AppConfig']
 
 const rootProps = useForwardPropsEmits(reactivePick(props, 'as', 'orientation', 'min', 'max', 'step', 'minStepsBetweenThumbs', 'inverted'), emits)
 
-const { name, size, color, disabled } = useFormField<SliderProps>(props)
-
-const { controlProps, field: { setValue } } = useCustomControl({ name, disabled })
+const { id, emitFormChange, emitFormInput, size, color, name, disabled, ariaAttrs } = useFormField<SliderProps>(props)
 
 const defaultSliderValue = computed(() => {
   if (typeof props.defaultValue === 'number') {
@@ -101,22 +97,23 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.slider || {}
 }))
 
 function onChange(value: any) {
-  setValue(value)
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
+  emitFormChange()
 }
 </script>
 
 <template>
   <SliderRoot
-    v-bind="{ ...rootProps, ...controlProps }"
+    v-bind="{ ...rootProps, ...ariaAttrs }"
+    :id="id"
     v-model="sliderValue"
     :name="name"
     :disabled="disabled"
     :class="ui.root({ class: [props.ui?.root, props.class] })"
     :default-value="defaultSliderValue"
-    @update:model-value="setValue"
+    @update:model-value="emitFormInput()"
     @value-commit="onChange"
   >
     <SliderTrack :class="ui.track({ class: props.ui?.track })">

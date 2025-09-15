@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/content/content-search-button'
-import type { ButtonProps, ButtonSlots, KbdProps, TooltipProps } from '../../types'
+import type { ButtonProps, ButtonSlots, IconProps, KbdProps, TooltipProps } from '../../types'
 import type { ComponentConfig } from '../../types/tv'
 
 type ContentSearchButton = ComponentConfig<typeof theme, AppConfig, 'contentSearchButton'>
@@ -12,7 +12,7 @@ export interface ContentSearchButtonProps {
    * @defaultValue appConfig.ui.icons.search
    * @IconifyIcon
    */
-  icon?: string
+  icon?: IconProps['name']
   /**
    * The label displayed in the button.
    * @defaultValue t('contentSearchButton.label')
@@ -76,7 +76,7 @@ const slots = defineSlots<ButtonSlots>()
 
 const [DefineButtonTemplate, ReuseButtonTemplate] = createReusableTemplate()
 
-const proxySlots = omit(slots, ['trailing'])
+const getProxySlots = () => omit(slots, ['trailing'])
 
 const rootProps = useForwardProps(reactivePick(props, 'color', 'size'))
 const tooltipProps = toRef(() => defu(typeof props.tooltip === 'boolean' ? {} : props.tooltip, { delayDuration: 0, content: { side: 'right' } }) as TooltipProps)
@@ -108,7 +108,7 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.contentSearc
       :ui="transformUI(ui, props.ui)"
       @click="open = true"
     >
-      <template v-for="(_, name) in proxySlots" #[name]="slotData">
+      <template v-for="(_, name) in getProxySlots()" #[name]="slotData">
         <slot :name="name" v-bind="slotData" />
       </template>
 

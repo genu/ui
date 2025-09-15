@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/banner'
-import type { ButtonProps, LinkProps } from '../types'
+import type { ButtonProps, IconProps, LinkProps } from '../types'
 import type { ComponentConfig } from '../types/tv'
 
 type Banner = ComponentConfig<typeof theme, AppConfig, 'banner'>
@@ -22,7 +22,7 @@ export interface BannerProps {
    * The icon displayed next to the title.
    * @IconifyIcon
    */
-  icon?: string
+  icon?: IconProps['name']
   title?: string
   /**
    * Display a list of actions next to the title.
@@ -47,7 +47,7 @@ export interface BannerProps {
    * @defaultValue appConfig.ui.icons.close
    * @IconifyIcon
    */
-  closeIcon?: string
+  closeIcon?: IconProps['name']
   class?: any
   ui?: Banner['slots']
 }
@@ -145,7 +145,7 @@ function onClose() {
           </slot>
         </div>
 
-        <div v-if="actions?.length" :class="ui.actions({ class: props.ui?.actions })">
+        <div v-if="actions?.length || !!slots.actions" :class="ui.actions({ class: props.ui?.actions })">
           <slot name="actions">
             <UButton v-for="(action, index) in actions" :key="index" color="neutral" size="xs" v-bind="action" />
           </slot>

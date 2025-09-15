@@ -13,7 +13,7 @@ Use the Form component to validate form data using validation libraries such as 
 
 It works with the [FormField](/docs/components/form-field) component to display error messages around form elements automatically.
 
-### Schema Validation
+### Schema validation
 
 It requires two props:
 
@@ -70,7 +70,7 @@ Errors are reported directly to the [FormField](/docs/components/form-field) com
 
 Nested validation rules are handled using dot notation. For example, a rule like `{ user: z.object({ email: z.string() }) }`{lang="ts"} will be applied to `<FormField name="user.email">`{lang="vue"}.
 
-### Custom Validation
+### Custom validation
 
 Use the `validate` prop to apply your own validation logic.
 
@@ -91,7 +91,7 @@ props:
 ---
 ::
 
-### Input Events
+### Input events
 
 The Form component automatically triggers validation when an input emits an `input`, `change`, or `blur` event.
 
@@ -128,7 +128,7 @@ options:
 You can use the [`useFormField`](/docs/composables/use-form-field) composable to implement this inside your own components.
 ::
 
-### Error Event
+### Error event
 
 You can listen to the `@error` event to handle errors. This event is triggered when the form is submitted and contains an array of `FormError` objects with the following fields:
 
@@ -147,7 +147,7 @@ props:
 ---
 ::
 
-### Nesting Forms
+### Nesting forms
 
 Nesting form components allows you to manage complex data structures, such as lists or conditional fields, more efficiently.
 
@@ -197,19 +197,19 @@ const form = useTemplateRef('form')
 
 This will give you access to the following:
 
-| Name | Type |
-| ---- | ---- |
-| `submit()`{lang="ts-type"} | `Promise<void>`{lang="ts-type"} <br> <div class="text-toned mt-1"><p>Triggers form submission.</p> |
-| `validate(opts: { name?: keyof T \| (keyof T)[], silent?: boolean, nested?: boolean, transform?: boolean })`{lang="ts-type"} | `Promise<T>`{lang="ts-type"} <br> <div class="text-toned mt-1"><p>Triggers form validation. Will raise any errors unless `opts.silent` is set to true.</p> |
-| `clear(path?: keyof T | RegExp)`{lang="ts-type"} | `void` <br> <div class="text-toned mt-1"><p>Clears form errors associated with a specific path. If no path is provided, clears all form errors.</p> |
-| `getErrors(path?: keyof T | RegExp)`{lang="ts-type"} | `FormError[]`{lang="ts-type"} <br> <div class="text-toned mt-1"><p>Retrieves form errors associated with a specific path. If no path is provided, returns all form errors.</p></div> |
-| `setErrors(errors: FormError[], name?: keyof T | RegExp)`{lang="ts-type"} | `void` <br> <div class="text-toned mt-1"><p>Sets form errors for a given path. If no path is provided, overrides all errors.</p> |
-| `errors`{lang="ts-type"} | `Ref<FormError[]>`{lang="ts-type"} <br> <div class="text-toned mt-1"><p>A reference to the array containing validation errors. Use this to access or manipulate the error information.</p> |
-| `disabled`{lang="ts-type"} | `Ref<boolean>`{lang="ts-type"} |
-| `dirty`{lang="ts-type"} | `Ref<boolean>`{lang="ts-type"} `true` if at least one form field has been updated by the user.|
-| `dirtyFields`{lang="ts-type"} | `DeepReadonly<Set<keyof T>>`{lang="ts-type"} Tracks fields that have been modified by the user. |
-| `touchedFields`{lang="ts-type"} | `DeepReadonly<Set<keyof T>>`{lang="ts-type"} Tracks fields that the user interacted with. |
-| `blurredFields`{lang="ts-type"} | `DeepReadonly<Set<keyof T>>`{lang="ts-type"} Tracks fields blurred by the user. |
+| Name                                                                                                                         | Type                                                                                                                                                                                       |
+|------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `submit()`{lang="ts-type"}                                                                                                   | `Promise<void>`{lang="ts-type"} <br> <div class="text-toned mt-1"><p>Triggers form submission.</p>                                                                                         |
+| `validate(opts: { name?: keyof T \| (keyof T)[], silent?: boolean, nested?: boolean, transform?: boolean })`{lang="ts-type"} | `Promise<T>`{lang="ts-type"} <br> <div class="text-toned mt-1"><p>Triggers form validation. Will raise any errors unless `opts.silent` is set to true.</p>                                 |
+| `clear(path?: keyof T \| RegExp)`{lang="ts-type"}                                                                            | `void` <br> <div class="text-toned mt-1"><p>Clears form errors associated with a specific path. If no path is provided, clears all form errors.</p>                                        |
+| `getErrors(path?: keyof T RegExp)`{lang="ts-type"}                                                                           | `FormError[]`{lang="ts-type <br> <div class="text-toned mt-1"><p>Retrieves form errors associated with a specific path. If no path is provided, returns all form errors.</p></div>         |
+| `setErrors(errors: FormError[], name?: keyof T RegExp)`{lang="ts-type"}                                                      | `void` <br> <div class="text-toned mt-1"><p>Sets form errors for a given path. If no path is provided, overrides all errors.</p>                                                           |
+| `errors`{lang="ts-type"}                                                                                                     | `Ref<FormError[]>`{lang="ts-type"} <br> <div class="text-toned mt-1"><p>A reference to the array containing validation errors. Use this to access or manipulate the error information.</p> |
+| `disabled`{lang="ts-type"}                                                                                                   | `Ref<boolean>`{lang="ts-type"}                                                                                                                                                             |
+| `dirty`{lang="ts-type"}                                                                                                      | `Ref<boolean>`{lang="ts-type"} `true` if at least one form field has been updated by the user.                                                                                             |
+| `dirtyFields`{lang="ts-type"}                                                                                                | `DeepReadonly<Set<keyof T>>`{lang="ts-type"} Tracks fields that have been modified by the user.                                                                                            |
+| `touchedFields`{lang="ts-type"}                                                                                              | `DeepReadonly<Set<keyof T>>`{lang="ts-type"} Tracks fields that the user interacted with.                                                                                                  |
+| `blurredFields`{lang="ts-type"}                                                                                              | `DeepReadonly<Set<keyof T>>`{lang="ts-type"} Tracks fields blurred by the user.                                                                                                            |
 
 ## Theme
 

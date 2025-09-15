@@ -3,10 +3,9 @@ import type { ComboboxRootProps, ComboboxRootEmits, ComboboxContentProps, Combob
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/select-menu'
 import type { UseComponentIconsProps } from '../composables/useComponentIcons'
-import type { AvatarProps, ChipProps, InputProps } from '../types'
+import type { AvatarProps, ChipProps, IconProps, InputProps } from '../types'
 import type { AcceptableValue, ArrayOrNested, GetItemKeys, GetItemValue, GetModelValue, GetModelValueEmits, NestedItem, EmitsToProps } from '../types/utils'
 import type { ComponentConfig } from '../types/tv'
-import { useCustomControl } from '@formwerk/core'
 
 type SelectMenu = ComponentConfig<typeof theme, AppConfig, 'selectMenu'>
 
@@ -15,7 +14,7 @@ interface _SelectMenuItem {
   /**
    * @IconifyIcon
    */
-  icon?: string
+  icon?: IconProps['name']
   avatar?: AvatarProps
   chip?: ChipProps
   /**
@@ -60,13 +59,13 @@ export interface SelectMenuProps<T extends ArrayOrNested<SelectMenuItem> = Array
    * @defaultValue appConfig.ui.icons.chevronDown
    * @IconifyIcon
    */
-  trailingIcon?: string
+  trailingIcon?: IconProps['name']
   /**
    * The icon displayed when an item is selected.
    * @defaultValue appConfig.ui.icons.check
    * @IconifyIcon
    */
-  selectedIcon?: string
+  selectedIcon?: IconProps['name']
   /**
    * The content of the menu.
    * @defaultValue { side: 'bottom', sideOffset: 8, collisionPadding: 8, position: 'popper' }
@@ -92,7 +91,7 @@ export interface SelectMenuProps<T extends ArrayOrNested<SelectMenuItem> = Array
    * When `items` is an array of objects, select the field to use as the label.
    * @defaultValue 'label'
    */
-  labelKey?: keyof NestedItem<T>
+  labelKey?: GetItemKeys<T>
   items?: T
   /** The value of the SelectMenu when initially rendered. Use when you do not need to control the state of the SelectMenu. */
   defaultValue?: GetModelValue<T, VK, M>
@@ -124,9 +123,9 @@ export interface SelectMenuProps<T extends ArrayOrNested<SelectMenuItem> = Array
 }
 
 export type SelectMenuEmits<A extends ArrayOrNested<SelectMenuItem>, VK extends GetItemKeys<A> | undefined, M extends boolean> = Pick<ComboboxRootEmits, 'update:open'> & {
-  change: [payload: Event]
-  blur: [payload: FocusEvent]
-  focus: [payload: FocusEvent]
+  change: [event: Event]
+  blur: [event: FocusEvent]
+  focus: [event: FocusEvent]
   create: [item: string]
   /** Event handler when highlighted element changes. */
   highlight: [payload: {
@@ -191,7 +190,7 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(defineProps<SelectMenuProps<T, VK, M>>(), {
   portal: true,
   searchInput: true,
-  labelKey: 'label' as never,
+  labelKey: 'label',
   resetSearchTermOnBlur: true,
   resetSearchTermOnSelect: true,
   autofocusDelay: 0
@@ -211,13 +210,10 @@ const contentProps = toRef(() => defu(props.content, { side: 'bottom', sideOffse
 const arrowProps = toRef(() => props.arrow as ComboboxArrowProps)
 const searchInputProps = toRef(() => defu(props.searchInput, { placeholder: t('selectMenu.search'), variant: 'none' }) as InputProps)
 
-const { size: formGroupSize, color, name, highlight, disabled } = useFormField<InputProps>(props)
+const { emitFormBlur, emitFormFocus, emitFormInput, emitFormChange, size: formGroupSize, color, id, name, highlight, disabled, ariaAttrs } = useFormField<InputProps>(props)
 const { orientation, size: fieldGroupSize } = useFieldGroup<InputProps>(props)
 const { isLeading, isTrailing, leadingIconName, trailingIconName } = useComponentIcons(toRef(() => defu(props, { trailingIcon: appConfig.ui.icons.chevronDown })))
-const { controlProps, field: { setValue } } = useCustomControl({
-  name,
-  disabled
-})
+
 const selectSize = computed(() => fieldGroupSize.value || formGroupSize.value)
 
 const [DefineCreateItemTemplate, ReuseCreateItemTemplate] = createReusableTemplate()
@@ -236,7 +232,7 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.selectMenu |
 function displayValue(value: GetItemValue<T, VK> | GetItemValue<T, VK>[]): string | undefined {
   if (props.multiple && Array.isArray(value)) {
     const displayedValues = value
-      .map(item => getDisplayValue(items.value, item, {
+      .map(item => getDisplayValue<T[], GetItemValue<T, VK>>(items.value, item, {
         labelKey: props.labelKey,
         valueKey: props.valueKey
       }))
@@ -245,7 +241,7 @@ function displayValue(value: GetItemValue<T, VK> | GetItemValue<T, VK>[]): strin
     return displayedValues.length > 0 ? displayedValues.join(', ') : undefined
   }
 
-  return getDisplayValue(items.value, value, {
+  return getDisplayValue<T[], GetItemValue<T, VK>>(items.value, value as GetItemValue<T, VK>, {
     labelKey: props.labelKey,
     valueKey: props.valueKey
   })
@@ -329,7 +325,8 @@ function onUpdate(value: any) {
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
-  setValue(value)
+  emitFormChange()
+  emitFormInput()
 
   if (props.resetSearchTermOnSelect) {
     searchTerm.value = ''
@@ -343,6 +340,7 @@ function onUpdateOpen(value: boolean) {
     const event = new FocusEvent('blur')
 
     emits('blur', event)
+    emitFormBlur()
 
     // Since we use `displayValue` prop inside ComboboxInput we should reset searchTerm manually
     // https://reka-ui.com/docs/components/combobox#api-reference
@@ -356,7 +354,7 @@ function onUpdateOpen(value: boolean) {
   } else {
     const event = new FocusEvent('focus')
     emits('focus', event)
-
+    emitFormFocus()
     clearTimeout(timeoutId)
   }
 }
@@ -402,8 +400,9 @@ defineExpose({
   </DefineCreateItemTemplate>
 
   <ComboboxRoot
+    :id="id"
     v-slot="{ modelValue, open }"
-    v-bind="{ ...rootProps, ...$attrs, ...controlProps }"
+    v-bind="{ ...rootProps, ...$attrs, ...ariaAttrs }"
     ignore-filter
     as-child
     :name="name"

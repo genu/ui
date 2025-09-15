@@ -2,8 +2,8 @@
 import type { CheckboxRootProps } from 'reka-ui'
 import type { AppConfig } from '@nuxt/schema'
 import theme from '#build/ui/checkbox'
+import type { IconProps } from '../types'
 import type { ComponentConfig } from '../types/tv'
-import { useCustomControl } from '@formwerk/core'
 
 type Checkbox = ComponentConfig<typeof theme, AppConfig, 'checkbox'>
 
@@ -37,19 +37,19 @@ export interface CheckboxProps extends Pick<CheckboxRootProps, 'disabled' | 'req
    * @defaultValue appConfig.ui.icons.check
    * @IconifyIcon
    */
-  icon?: string
+  icon?: IconProps['name']
   /**
    * The icon displayed when the checkbox is indeterminate.
    * @defaultValue appConfig.ui.icons.minus
    * @IconifyIcon
    */
-  indeterminateIcon?: string
+  indeterminateIcon?: IconProps['name']
   class?: any
   ui?: Checkbox['slots']
 }
 
 export type CheckboxEmits = {
-  change: [payload: Event]
+  change: [event: Event]
 }
 
 export interface CheckboxSlots {
@@ -59,7 +59,7 @@ export interface CheckboxSlots {
 </script>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { Primitive, CheckboxRoot, CheckboxIndicator, Label, useForwardProps } from 'reka-ui'
 import { reactivePick } from '@vueuse/core'
 import { useAppConfig } from '#imports'
@@ -79,12 +79,8 @@ const appConfig = useAppConfig() as Checkbox['AppConfig']
 
 const rootProps = useForwardProps(reactivePick(props, 'required', 'value', 'defaultValue'))
 
-const { size, name, color, disabled } = useFormField<CheckboxProps>(props)
-
-const { controlProps, field: { fieldValue, setValue } } = useCustomControl<boolean>({
-  name,
-  disabled: props.disabled
-})
+const { id: _id, emitFormChange, emitFormInput, size, color, name, disabled, ariaAttrs } = useFormField<CheckboxProps>(props)
+const id = _id.value ?? useId()
 
 const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.checkbox || {}) })({
   size: size.value,
@@ -96,12 +92,11 @@ const ui = computed(() => tv({ extend: tv(theme), ...(appConfig.ui?.checkbox || 
 }))
 
 function onUpdate(value: any) {
-  setValue(value)
-  modelValue.value = value
-
   // @ts-expect-error - 'target' does not exist in type 'EventInit'
   const event = new Event('change', { target: { value } })
   emits('change', event)
+  emitFormChange()
+  emitFormInput()
 }
 </script>
 
@@ -110,9 +105,11 @@ function onUpdate(value: any) {
   <Primitive :as="(!variant || variant === 'list') ? as : Label" :class="ui.root({ class: [props.ui?.root, props.class] })">
     <div :class="ui.container({ class: props.ui?.container })">
       <CheckboxRoot
-        v-bind="{ ...rootProps, ...$attrs, ...controlProps }"
-        :model-value="fieldValue"
+        :id="id"
+        v-bind="{ ...rootProps, ...$attrs, ...ariaAttrs }"
+        v-model="modelValue"
         :name="name"
+        :disabled="disabled"
         :class="ui.base({ class: props.ui?.base })"
         @update:model-value="onUpdate"
       >
@@ -126,7 +123,7 @@ function onUpdate(value: any) {
     </div>
 
     <div v-if="(label || !!slots.label) || (description || !!slots.description)" :class="ui.wrapper({ class: props.ui?.wrapper })">
-      <component :is="(!variant || variant === 'list') ? Label : 'p'" v-if="label || !!slots.label" :for="controlProps.id" :class="ui.label({ class: props.ui?.label })">
+      <component :is="(!variant || variant === 'list') ? Label : 'p'" v-if="label || !!slots.label" :for="id" :class="ui.label({ class: props.ui?.label })">
         <slot name="label" :label="label">
           {{ label }}
         </slot>

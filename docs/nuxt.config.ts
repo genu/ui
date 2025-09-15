@@ -73,21 +73,31 @@ export default defineNuxtConfig({
     '/composables/**': { redirect: { to: '/docs/composables/**', statusCode: 301 }, prerender: false },
     // v4 redirects - default root pages
     '/docs': { redirect: '/docs/getting-started', prerender: false },
-    '/docs/composables': { redirect: '/docs/composables/define-shortcuts', prerender: false },
     '/docs/getting-started/migration': { redirect: '/docs/getting-started/migration/v4', prerender: false },
+    '/docs/getting-started/theme': { redirect: '/docs/getting-started/theme/design-system', prerender: false },
+    '/docs/getting-started/integrations': { redirect: '/docs/getting-started/integrations/icons', prerender: false },
+    '/docs/getting-started/ai': { redirect: '/docs/getting-started/ai/mcp', prerender: false },
+    '/docs/composables': { redirect: '/docs/composables/define-shortcuts', prerender: false },
     // v4 redirects - default shadow pages
     '/docs/getting-started/installation': { redirect: '/docs/getting-started/installation/nuxt', prerender: false },
-    '/docs/getting-started/icons': { redirect: '/docs/getting-started/icons/nuxt', prerender: false },
-    '/docs/getting-started/color-mode': { redirect: '/docs/getting-started/color-mode/nuxt', prerender: false },
-    '/docs/getting-started/i18n': { redirect: '/docs/getting-started/i18n/nuxt', prerender: false },
+    '/docs/getting-started/integrations/icons': { redirect: '/docs/getting-started/integrations/icons/nuxt', prerender: false },
+    '/docs/getting-started/integrations/color-mode': { redirect: '/docs/getting-started/integrations/color-mode/nuxt', prerender: false },
+    '/docs/getting-started/integrations/i18n': { redirect: '/docs/getting-started/integrations/i18n/nuxt', prerender: false },
+    // v4 redirects - renamed pages
+    '/docs/getting-started/typography': { redirect: { to: '/docs/typography', statusCode: 301 }, prerender: false },
+    '/docs/getting-started/icons/**': { redirect: { to: '/docs/getting-started/integrations/icons/**', statusCode: 301 }, prerender: false },
+    '/docs/getting-started/fonts': { redirect: { to: '/docs/getting-started/integrations/fonts', statusCode: 301 }, prerender: false },
+    '/docs/getting-started/color-mode/**': { redirect: { to: '/docs/getting-started/integrations/color-mode/**', statusCode: 301 }, prerender: false },
+    '/docs/getting-started/i18n/**': { redirect: { to: '/docs/getting-started/integrations/i18n/**', statusCode: 301 }, prerender: false },
+    '/docs/getting-started/content': { redirect: { to: '/docs/getting-started/integrations/content', statusCode: 301 }, prerender: false },
     // v4 redirects - renamed components
     '/docs/components/button-group': { redirect: { to: '/docs/components/field-group', statusCode: 301 }, prerender: false },
     '/docs/components/page-accordion': { redirect: { to: '/docs/components/accordion', statusCode: 301 }, prerender: false },
     '/docs/components/page-marquee': { redirect: { to: '/docs/components/marquee', statusCode: 301 }, prerender: false },
     // v4 redirects - removed pro pages
-    '/pro': { redirect: { to: '/pro/activate', statusCode: 301 }, prerender: false },
-    '/pro/pricing': { redirect: { to: '/pro/activate', statusCode: 301 }, prerender: false },
-    '/pro/purchase': { redirect: { to: '/pro/activate', statusCode: 301 }, prerender: false },
+    '/pro': { redirect: { to: '/docs/getting-started', statusCode: 301 }, prerender: false },
+    '/pro/pricing': { redirect: { to: '/docs/getting-started', statusCode: 301 }, prerender: false },
+    '/pro/purchase': { redirect: { to: '/docs/getting-started', statusCode: 301 }, prerender: false },
     '/pro/templates': { redirect: { to: '/templates', statusCode: 301 }, prerender: false },
     '/docs/getting-started/license': { redirect: { to: '/docs/getting-started', statusCode: 301 }, prerender: false },
     '/docs/getting-started/installation/pro': { redirect: '/docs/getting-started/installation/nuxt', prerender: false },
@@ -153,12 +163,11 @@ export default defineNuxtConfig({
         '/docs/getting-started',
         '/api/countries.json',
         '/api/locales.json',
-        // '/api/releases.json',
-        // '/api/pulls.json'
-        '/404.html'
+        '/api/module.json'
+        // '/api/github/pulls.json',
+        // '/api/github/releases.json'
       ],
-      crawlLinks: true,
-      autoSubfolderIndex: false
+      crawlLinks: true
     }
   },
 

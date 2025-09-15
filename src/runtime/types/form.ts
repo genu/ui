@@ -7,7 +7,10 @@ import type { Struct as SuperstructSchema } from 'superstruct'
 
 export interface Form<S extends FormSchema> {
   validate<T extends boolean>(opts?: { name?: keyof FormData<S, false> | (keyof FormData<S, false>)[], silent?: boolean, nested?: boolean, transform?: T }): Promise<FormData<S, T> | false>
-  clear (path?: string): void
+  clear (path?: keyof FormData<S, false> | RegExp): void
+  errors: Ref<FormError[]>
+  setErrors (errs: FormError[], name?: keyof FormData<S, false> | RegExp): void
+  getErrors (name?: keyof FormData<S, false> | RegExp): FormError[]
   submit (): Promise<void>
   disabled: ComputedRef<boolean>
   dirty: ComputedRef<boolean>
@@ -43,7 +46,23 @@ export type FormData<S extends FormSchema, T extends boolean = true> = T extends
 
 export type FormInputEvents = 'input' | 'blur' | 'change' | 'focus'
 
+export interface FormError<P extends string = string> {
+  name?: P
+  message: string
+}
+
+export interface FormErrorWithId extends FormError {
+  id?: string
+}
+
 export type FormSubmitEvent<T> = SubmitEvent & { data: T }
+
+export type FormValidationError = {
+  errors: FormErrorWithId[]
+  children?: FormValidationError[]
+}
+
+export type FormErrorEvent = SubmitEvent & FormValidationError
 
 export type FormEventType = FormInputEvents
 
@@ -77,12 +96,31 @@ export interface FormInjectedOptions {
 export interface FormFieldInjectedOptions<T> {
   name?: string
   size?: GetObjectField<T, 'size'>
-  hasError?: boolean
+  error?: string | boolean
   eagerValidation?: boolean
   validateOnInputDelay?: number
   errorPattern?: RegExp
+  hint?: string
+  description?: string
+  help?: string
+  ariaId: string
 }
 
-export interface FormGroupInjectedOptions<T> {
-  size?: GetObjectField<T, 'size'>
+export interface ValidateReturnSchema<T> {
+  result: T
+  errors: FormError[] | null
+}
+
+export class FormValidationException extends Error {
+  formId: string | number
+  errors: FormErrorWithId[]
+  children?: FormValidationException[]
+
+  constructor(formId: string | number, errors: FormErrorWithId[], childErrors?: FormValidationException[]) {
+    super('Form validation exception')
+    this.formId = formId
+    this.errors = errors
+    this.children = childErrors
+    Object.setPrototypeOf(this, FormValidationException.prototype)
+  }
 }
